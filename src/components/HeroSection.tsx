@@ -15,6 +15,8 @@ export default function HeroSection() {
           alt="Dallas flea market"
           className="w-full h-full object-cover opacity-60"
         />
+        {/* Added dark gradient overlay for improved text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-black/30"></div>
       </div>
 
       {/* Content */}
@@ -39,15 +41,26 @@ export default function HeroSection() {
           </Button>
         </motion.div>
 
-        {/* Featured Deal Card */}
+        {/* Featured Deal Card with enhanced animation */}
         <motion.div 
           className="mt-12 md:absolute md:right-6 md:top-1/2 md:transform md:-translate-y-1/2 md:mt-0 md:max-w-sm w-full"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <Card className="bg-white/90 backdrop-blur-sm p-6 text-thriphti-charcoal border-none">
-            <div className="tag mb-4">Featured Deal</div>
+          <Card className="bg-white/90 backdrop-blur-sm p-6 text-thriphti-charcoal border-none shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div className="tag">Featured Deal</div>
+              {/* New badge - can be conditionally rendered based on deal date */}
+              <motion.div 
+                className="bg-thriphti-green text-white text-xs uppercase font-bold py-1 px-3 rounded-full"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.8, type: "spring" }}
+              >
+                New
+              </motion.div>
+            </div>
             <h3 className="text-2xl font-serif mb-2">Eastside Flea Market</h3>
             <p className="mb-4">50% off admission this Saturday only. Bring this coupon for early access at 8am.</p>
             <div className="flex justify-between items-center">

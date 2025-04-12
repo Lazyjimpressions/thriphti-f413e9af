@@ -90,9 +90,9 @@ export default function CityFilter() {
               size="sm"
               onClick={() => setActiveCity(city)}
               className={cn(
-                "text-white whitespace-nowrap rounded-full min-w-fit",
+                "text-white whitespace-nowrap rounded-full min-w-fit transition-colors",
                 activeCity === city 
-                  ? "bg-white text-thriphti-green hover:bg-white/90 hover:text-thriphti-green" 
+                  ? "bg-green-900 text-white hover:bg-green-800" 
                   : "hover:bg-white/20 hover:text-white"
               )}
             >
@@ -122,9 +122,9 @@ export default function CityFilter() {
               size="sm"
               onClick={() => setActiveCity(city)}
               className={cn(
-                "text-white",
+                "text-white transition-colors",
                 activeCity === city 
-                  ? "bg-white text-thriphti-green hover:bg-white/90 hover:text-thriphti-green" 
+                  ? "bg-green-900 text-white hover:bg-green-800 px-3 py-1" 
                   : "hover:bg-white/20 hover:text-white"
               )}
             >
