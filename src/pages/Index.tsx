@@ -1,5 +1,6 @@
 
 import NavigationBar from "@/components/NavigationBar";
+import HeroSection from "@/components/HeroSection";
 import CityFilter from "@/components/CityFilter";
 import EventGrid from "@/components/EventGrid";
 import EditorsPick from "@/components/EditorsPick";
@@ -11,7 +12,8 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <NavigationBar />
-      <main className="bg-thriphti-ivory pt-20">
+      <HeroSection />
+      <main className="bg-thriphti-ivory">
         <CityFilter />
         <EventGrid />
         <EditorsPick />
