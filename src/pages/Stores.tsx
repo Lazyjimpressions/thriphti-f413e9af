@@ -19,17 +19,19 @@ export default function Stores() {
         />
       </Helmet>
       
-      <NavigationBar />
-      
-      <main className="pt-16">
-        <StoresHeader />
-        <FilterBar />
-        <StoreGrid />
-        <EditorsPicks />
-        <CalloutSection />
-      </main>
-      
-      <Footer />
+      <div className="min-h-screen bg-thriphti-ivory">
+        <NavigationBar />
+        
+        <main className="pt-16">
+          <StoresHeader />
+          <FilterBar />
+          <StoreGrid />
+          <EditorsPicks />
+          <CalloutSection />
+        </main>
+        
+        <Footer />
+      </div>
     </>
   );
 }
