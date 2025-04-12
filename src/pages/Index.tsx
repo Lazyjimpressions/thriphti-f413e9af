@@ -12,7 +12,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-thriphti-ivory">
       <NavigationBar />
-      <main className="pt-16">
+      <main>
         <HeroSection />
         <CityFilter />
         <EventGrid />

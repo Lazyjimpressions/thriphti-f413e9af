@@ -12,7 +12,7 @@ export default function HeroSection() {
       {/* Background Image with overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/lovable-uploads/347c218e-d5b9-438a-96f8-f1ba79765094.png"
+          src="/lovable-uploads/9a0edd53-b84a-478e-9a10-2c523f36714a.png"
           alt="Dallas flea market"
           className="w-full h-full object-cover"
         />
