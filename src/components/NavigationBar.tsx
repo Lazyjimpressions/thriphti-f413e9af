@@ -9,17 +9,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useLocation, Link } from "react-router-dom";
 
 const navLinks = [
-  { name: "This Weekend", href: "#" },
+  { name: "This Weekend", href: "/" },
   { name: "Guides", href: "#" },
   { name: "Neighborhoods", href: "#" },
-  { name: "Stores", href: "#" },
+  { name: "Stores", href: "/stores" },
   { name: "Subscribe", href: "#" },
 ];
 
 export default function NavigationBar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,23 +48,32 @@ export default function NavigationBar() {
       }`}
     >
       <div className="thriphti-container flex items-center justify-between">
-        <a href="#" className="text-thriphti-green font-serif text-2xl md:text-3xl font-bold mr-8">
+        <Link to="/" className="text-thriphti-green font-serif text-2xl md:text-3xl font-bold mr-8">
           Thriphti
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <ul className="flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <a 
-                  href={link.href}
-                  className="font-medium text-thriphti-green hover:text-thriphti-rust transition-colors"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.href || 
+                (location.pathname === "/" && link.href === "/");
+              
+              return (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href}
+                    className={`font-medium transition-colors ${
+                      isActive 
+                        ? "text-thriphti-rust" 
+                        : "text-thriphti-green hover:text-thriphti-rust"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           <Button className="bg-thriphti-rust hover:bg-thriphti-rust/90 text-white">
             Get Deal Alerts
@@ -85,15 +96,24 @@ export default function NavigationBar() {
                 </SheetTitle>
               </SheetHeader>
               <nav className="mt-8 flex flex-col space-y-6">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-xl font-medium text-thriphti-green hover:text-thriphti-rust transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                ))}
+                {navLinks.map((link) => {
+                  const isActive = location.pathname === link.href || 
+                    (location.pathname === "/" && link.href === "/");
+                  
+                  return (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className={`text-xl font-medium transition-colors ${
+                        isActive 
+                          ? "text-thriphti-rust" 
+                          : "text-thriphti-green hover:text-thriphti-rust"
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  );
+                })}
                 <Button className="mt-4 bg-thriphti-rust hover:bg-thriphti-rust/90 text-white w-full">
                   Get Deal Alerts
                 </Button>
