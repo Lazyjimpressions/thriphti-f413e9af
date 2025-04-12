@@ -46,7 +46,7 @@ export default function NavigationBar() {
       }`}
     >
       <div className="thriphti-container flex items-center justify-between">
-        <a href="#" className="text-thriphti-green font-serif text-2xl md:text-3xl font-bold">
+        <a href="#" className="text-thriphti-green font-serif text-2xl md:text-3xl font-bold mr-8">
           Thriphti
         </a>
 

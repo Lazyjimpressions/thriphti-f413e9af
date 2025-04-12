@@ -7,7 +7,7 @@ import { fadeInUpVariants } from "@/lib/motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[80vh] flex items-center pt-16">
+    <section className="relative min-h-[60vh] flex items-center pt-20">
       {/* Background Image */}
       <div className="absolute inset-0 z-0 bg-black">
         <img
