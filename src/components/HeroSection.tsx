@@ -23,13 +23,22 @@ const HeroSection = () => {
     <div 
       className="relative h-[90vh] w-full bg-black"
     >
-      {/* Background Image */}
+      {/* Background Image with fallback color */}
       <div 
-        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-thriphti-green transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          backgroundImage: "url('/lovable-uploads/5b67d97f-5465-4a1c-b502-a059a1ea9163.png')"
+          backgroundImage: `url('/lovable-uploads/5b67d97f-5465-4a1c-b502-a059a1ea9163.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
         }}
       />
+      
+      {/* Debug placeholder to see if the div renders */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-thriphti-green flex items-center justify-center">
+          <p className="text-white text-xl">Loading hero image...</p>
+        </div>
+      )}
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/70">
