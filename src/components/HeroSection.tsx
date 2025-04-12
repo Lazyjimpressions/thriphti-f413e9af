@@ -8,11 +8,11 @@ import { fadeInUpVariants } from "@/lib/motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[80vh] flex items-center pt-16">
-      {/* Background Image with single overlay */}
+    <section className="relative min-h-[80vh] flex items-center">
+      {/* Background Image with overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/lovable-uploads/0120f703-c1a7-4b4c-8a18-beb9d564e28d.png"
+          src="/lovable-uploads/347c218e-d5b9-438a-96f8-f1ba79765094.png"
           alt="Dallas flea market"
           className="w-full h-full object-cover"
         />
