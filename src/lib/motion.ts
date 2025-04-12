@@ -1,6 +1,8 @@
 
+import { Variants } from "framer-motion";
+
 // Animation variants for staggered container animations
-export const staggerContainerVariants = {
+export const staggerContainerVariants: Variants = {
   hidden: {
     opacity: 0
   },
@@ -13,7 +15,7 @@ export const staggerContainerVariants = {
 };
 
 // Animation variants for elements that fade in from below
-export const fadeInUpVariants = {
+export const fadeInUpVariants: Variants = {
   hidden: {
     y: 20,
     opacity: 0
@@ -29,7 +31,7 @@ export const fadeInUpVariants = {
 };
 
 // Animation variants for hero section fade in
-export const heroFadeInVariants = {
+export const heroFadeInVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 20
