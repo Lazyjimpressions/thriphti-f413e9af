@@ -9,15 +9,15 @@ import { fadeInUpVariants } from "@/lib/motion";
 export default function HeroSection() {
   return (
     <section className="relative min-h-[80vh] flex items-center pt-16">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0 bg-black">
+      {/* Background Image with single overlay */}
+      <div className="absolute inset-0 z-0">
         <img
           src="/lovable-uploads/0120f703-c1a7-4b4c-8a18-beb9d564e28d.png"
           alt="Dallas flea market"
-          className="w-full h-full object-cover opacity-70"
+          className="w-full h-full object-cover"
         />
-        {/* Dark gradient overlay for better readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30"></div>
+        {/* Single dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black/60"></div>
       </div>
 
       {/* Content */}
