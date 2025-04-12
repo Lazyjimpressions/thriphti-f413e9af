@@ -1,17 +1,37 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 const HeroSection = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Preload the image
+    const img = new Image();
+    img.src = '/lovable-uploads/5b67d97f-5465-4a1c-b502-a059a1ea9163.png';
+    img.onload = () => setImageLoaded(true);
+    
+    // If image fails to load, set as loaded anyway so content appears
+    img.onerror = () => {
+      console.error("Failed to load hero image");
+      setImageLoaded(true);
+    };
+  }, []);
+
   return (
     <div 
-      className="relative h-[90vh] w-full bg-cover bg-center"
-      style={{
-        backgroundImage: "url('/lovable-uploads/5b67d97f-5465-4a1c-b502-a059a1ea9163.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center"
-      }}
+      className="relative h-[90vh] w-full bg-black"
     >
+      {/* Background Image */}
+      <div 
+        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={{
+          backgroundImage: "url('/lovable-uploads/5b67d97f-5465-4a1c-b502-a059a1ea9163.png')"
+        }}
+      />
+      
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/70">
         <div className="container mx-auto h-full px-4 flex flex-col md:flex-row items-center justify-center md:justify-between">
           <div className="text-white max-w-xl mt-20 md:mt-0">
