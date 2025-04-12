@@ -10,10 +10,10 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-thriphti-ivory">
+    <div className="min-h-screen">
       <NavigationBar />
-      <main>
-        <HeroSection />
+      <HeroSection />
+      <main className="bg-thriphti-ivory">
         <CityFilter />
         <EventGrid />
         <EditorsPick />
