@@ -1,9 +1,7 @@
-
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
 import { MapPin, Clock, Star, Bookmark, Facebook, Instagram, ExternalLink } from "lucide-react";
 import { fadeInUpVariants, staggerContainerVariants } from "@/lib/motion";
-import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,8 +95,6 @@ export default function StoreDetail() {
       </Helmet>
       
       <div className="min-h-screen bg-thriphti-ivory">
-        <NavigationBar />
-        
         <main className="pt-16">
           <StoreHeader 
             name={storeData.name}

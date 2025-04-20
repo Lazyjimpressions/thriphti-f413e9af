@@ -1,6 +1,4 @@
-
 import { Helmet } from "react-helmet";
-import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import StoresHeader from "@/components/stores/StoresHeader";
 import FilterBar from "@/components/stores/FilterBar";
@@ -20,8 +18,6 @@ export default function Stores() {
       </Helmet>
       
       <div className="min-h-screen bg-thriphti-ivory">
-        <NavigationBar />
-        
         <main className="pt-16">
           <StoresHeader />
           <FilterBar />

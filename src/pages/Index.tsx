@@ -1,24 +1,13 @@
-
-import NavigationBar from "@/components/NavigationBar";
 import HeroSection from "@/components/HeroSection";
-import CityFilter from "@/components/CityFilter";
 import EventGrid from "@/components/EventGrid";
-import EditorsPick from "@/components/EditorsPick";
-import SponsorSpotlight from "@/components/SponsorSpotlight";
-import EmailCta from "@/components/EmailCta";
 import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <NavigationBar />
       <HeroSection />
-      <main className="bg-thriphti-ivory">
-        <CityFilter />
+      <main className="bg-white py-16">
         <EventGrid />
-        <EditorsPick />
-        <SponsorSpotlight />
-        <EmailCta />
       </main>
       <Footer />
     </div>

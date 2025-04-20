@@ -1,4 +1,3 @@
-
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,24 +39,29 @@ export default function EventCard({ title, image, date, location, tag, index = 0
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 left-4">
-            <span className="tag">{tag}</span>
+            <span className="bg-thriphti-rust text-white text-sm px-3 py-1 rounded-sm uppercase">
+              {tag}
+            </span>
           </div>
         </div>
         <CardHeader className="pb-2">
-          <h3 className="font-serif text-xl text-thriphti-green">{title}</h3>
+          <h3 className="font-serif text-2xl text-[#1C392C]">{title}</h3>
         </CardHeader>
         <CardContent className="pb-2 text-sm space-y-2 flex-grow">
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-thriphti-rust" />
-            <span>{location}</span>
+            <span className="text-gray-600">{location}</span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar size={16} className="text-thriphti-rust" />
-            <span>{date}</span>
+            <span className="text-gray-600">{date}</span>
           </div>
         </CardContent>
         <CardFooter>
-          <Button variant="ghost" className="text-thriphti-green hover:text-thriphti-rust p-0 flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
+          >
             View Details
             <ArrowRight size={16} />
           </Button>
