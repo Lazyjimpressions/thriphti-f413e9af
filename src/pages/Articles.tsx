@@ -9,9 +9,11 @@ import FilterBar from "@/components/articles/FilterBar";
 import ArticleGrid from "@/components/articles/ArticleGrid";
 import EditorsPicks from "@/components/articles/EditorsPicks";
 import EmailCta from "@/components/EmailCta";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Articles() {
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const isMobile = useIsMobile();
 
   return (
     <>
@@ -29,7 +31,7 @@ export default function Articles() {
           <FilterBar selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} />
           
           <motion.div 
-            className="thriphti-container py-12"
+            className={`thriphti-container py-8 ${isMobile ? "px-4" : "py-12"}`}
             variants={staggerContainerVariants}
             initial="hidden"
             animate="visible"
@@ -38,14 +40,14 @@ export default function Articles() {
             
             <motion.div
               variants={fadeInUpVariants}
-              className="mt-16"
+              className={`${isMobile ? "mt-10" : "mt-16"}`}
             >
               <EditorsPicks />
             </motion.div>
             
             <motion.div
               variants={fadeInUpVariants}
-              className="mt-24"
+              className={`${isMobile ? "mt-16" : "mt-24"}`}
             >
               <EmailCta />
             </motion.div>

@@ -20,16 +20,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <NavigationBar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/stores" element={<Stores />} />
-          <Route path="/stores/:storeId" element={<StoreDetail />} />
-          <Route path="/articles" element={<Articles />} />
-          <Route path="/articles/:slug" element={<ArticleDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="min-h-screen relative">
+          <NavigationBar />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/stores" element={<Stores />} />
+            <Route path="/stores/:storeId" element={<StoreDetail />} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/articles/:slug" element={<ArticleDetail />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

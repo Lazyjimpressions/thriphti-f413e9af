@@ -1,6 +1,7 @@
 
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FilterBarProps {
   selectedFilter: string;
@@ -17,10 +18,12 @@ export default function FilterBar({ selectedFilter, onFilterChange }: FilterBarP
     { id: 'events', label: 'Events & Markets' }
   ];
   
+  const isMobile = useIsMobile();
+  
   return (
     <section className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="thriphti-container py-4">
-        <div className="overflow-x-auto pb-2">
+        <div className={`overflow-x-auto pb-2 ${isMobile ? "flex" : ""}`}>
           <div className="flex space-x-2 min-w-max">
             {filters.map(filter => (
               <Badge 
@@ -30,7 +33,7 @@ export default function FilterBar({ selectedFilter, onFilterChange }: FilterBarP
                   selectedFilter === filter.id 
                   ? "bg-thriphti-rust text-white hover:bg-thriphti-rust/90" 
                   : "hover:bg-gray-100"
-                }`}
+                } ${isMobile ? "whitespace-nowrap" : ""}`}
                 onClick={() => onFilterChange(filter.id)}
               >
                 {filter.label}
