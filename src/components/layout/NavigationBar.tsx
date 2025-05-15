@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 
 const NavigationBar = () => {
@@ -12,6 +13,7 @@ const NavigationBar = () => {
         {/* Navigation Links */}
         <div className="flex gap-8 text-white">
           <Link to="/this-weekend" className="hover:opacity-80">This Weekend</Link>
+          <Link to="/articles" className="hover:opacity-80">Articles</Link>
           <Link to="/guides" className="hover:opacity-80">Guides</Link>
           <Link to="/neighborhoods" className="hover:opacity-80">Neighborhoods</Link>
           <Link to="/stores" className="hover:opacity-80">Stores</Link>
@@ -21,4 +23,4 @@ const NavigationBar = () => {
   );
 };
 
-export default NavigationBar; 
+export default NavigationBar;
