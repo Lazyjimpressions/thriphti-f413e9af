@@ -1,4 +1,3 @@
-
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -17,8 +16,8 @@ export default function EditorsPick() {
             viewport={{ once: true }}
           >
             <img 
-              src="https://images.unsplash.com/photo-1627040411258-1ff09c28c75b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-              alt="Flea Markets Guide" 
+              src="/images/flea-market-guide.webp"
+              alt="Guide to DFW Flea Markets – illustration of a busy flea market scene"
               className="w-full h-full object-cover"
             />
           </motion.div>

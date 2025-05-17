@@ -67,25 +67,57 @@ const Index = () => {
               Explore by Neighborhood
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {['Deep Ellum', 'Bishop Arts', 'Uptown', 'Oak Cliff', 'Design District', 'Trinity Groves'].map((neighborhood) => (
-                <motion.div
-                  key={neighborhood}
-                  className="group relative overflow-hidden rounded-lg aspect-[4/3] cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <img
-                    src={`/images/neighborhoods/${neighborhood.toLowerCase().replace(' ', '-')}.jpg`}
-                    alt={neighborhood}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h3 className="font-serif text-2xl mb-2">{neighborhood}</h3>
-                    <p className="text-sm opacity-90">Discover local thrift spots</p>
-                  </div>
-                </motion.div>
-              ))}
+              {["Deep Ellum", "Bishop Arts", "Uptown", "Oak Cliff", "Design District", "Trinity Groves"].map((neighborhood) => {
+                // Use the custom webp for all neighborhoods in /images/{neighborhood}.webp, otherwise use the default jpg path
+                let imageSrc = `/images/neighborhoods/${neighborhood.toLowerCase().replace(' ', '-')}.jpg`;
+                let altText = neighborhood;
+                if (neighborhood === "Deep Ellum") {
+                  imageSrc = "/images/deep-ellum.webp";
+                  altText = "Deep Ellum neighborhood – illustration or photo of Dallas arts and nightlife district";
+                } else if (neighborhood === "Bishop Arts") {
+                  imageSrc = "/images/bishop-arts.webp";
+                  altText = "Bishop Arts neighborhood – illustration or photo of Dallas shopping and dining district";
+                } else if (neighborhood === "Uptown") {
+                  imageSrc = "/images/uptown.webp";
+                  altText = "Uptown neighborhood – illustration or photo of Dallas urban living and nightlife";
+                } else if (neighborhood === "Design District") {
+                  imageSrc = "/images/design-district.webp";
+                  altText = "Design District neighborhood – illustration or photo of Dallas art galleries and showrooms";
+                } else if (neighborhood === "Trinity Groves") {
+                  imageSrc = "/images/trinity-groves.webp";
+                  altText = "Trinity Groves neighborhood – illustration or photo of Dallas dining and entertainment district";
+                } else if (neighborhood === "Oak Cliff") {
+                  imageSrc = "/images/oakcliff.webp";
+                  altText = "Oak Cliff neighborhood – illustration or photo of Dallas historic and eclectic district";
+                }
+                // Fallback to generic image if the image does not exist (handled by onError)
+                return (
+                  <motion.div
+                    key={neighborhood}
+                    className="group relative overflow-hidden rounded-lg aspect-[4/3] cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <img
+                      src={imageSrc}
+                      alt={altText}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      onError={e => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes('generic-neighborhood.jpg')) {
+                          target.src = '/images/neighborhoods/generic-neighborhood.jpg';
+                          target.alt = 'Dallas neighborhood – generic illustration or photo';
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <h3 className="font-serif text-2xl mb-2">{neighborhood}</h3>
+                      <p className="text-sm opacity-90">Discover local thrift spots</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </div>
