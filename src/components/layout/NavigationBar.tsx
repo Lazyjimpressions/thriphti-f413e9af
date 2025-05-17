@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,21 +15,21 @@ const NavigationBar = () => {
   ];
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-50 py-6">
+    <nav className="fixed top-0 left-0 right-0 z-50 py-4 bg-white/80 backdrop-blur-md border-b border-gray-200/20">
       <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-white font-serif text-3xl">
+        <Link to="/" className="text-thriphti-green font-serif text-3xl">
           thriphti
         </Link>
 
         {/* Navigation Links - Desktop */}
         {!isMobile && (
-          <div className="flex gap-8 text-white">
+          <div className="flex gap-8">
             {navLinks.map((link) => (
               <Link 
                 key={link.to} 
                 to={link.to} 
-                className="hover:opacity-80"
+                className="text-thriphti-charcoal hover:text-thriphti-green transition-colors"
               >
                 {link.label}
               </Link>
@@ -42,7 +41,7 @@ const NavigationBar = () => {
         {isMobile && (
           <Sheet>
             <SheetTrigger asChild>
-              <button className="text-white p-2">
+              <button className="text-thriphti-charcoal p-2">
                 <Menu size={24} />
                 <span className="sr-only">Open menu</span>
               </button>
@@ -53,7 +52,7 @@ const NavigationBar = () => {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="text-lg font-medium hover:text-thriphti-rust transition-colors"
+                    className="text-lg font-medium text-thriphti-charcoal hover:text-thriphti-green transition-colors"
                   >
                     {link.label}
                   </Link>

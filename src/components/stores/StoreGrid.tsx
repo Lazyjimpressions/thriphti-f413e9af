@@ -1,61 +1,37 @@
-
+import { useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 import StoreCard from "./StoreCard";
 import { staggerContainerVariants } from "@/lib/motion";
+import { getApprovedStores } from '@/integrations/supabase/queries';
+import type { Database } from '@/types/supabase';
 
-// Sample store data
-const stores = [
-  {
-    id: 1,
-    name: "Thrift Haven",
-    image: "https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Lakewood",
-    city: "Gayland",
-    tags: ["Thrift", "Vintage"],
-  },
-  {
-    id: 2,
-    name: "Oak Cliff Emporium",
-    image: "https://images.unsplash.com/photo-1617097300103-19f5413620b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Deep Ellum",
-    city: "Dallas",
-    tags: ["Vintage", "Furniture"],
-  },
-  {
-    id: 3,
-    name: "Uptown Consignment",
-    image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Uptown",
-    city: "Dallas",
-    tags: ["Women's Clothing"],
-  },
-  {
-    id: 4,
-    name: "The Rusty Find",
-    image: "https://images.unsplash.com/photo-1578934191836-ff5f608c2228?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Preston Hollow",
-    city: "Dallas",
-    tags: ["Antiques", "Furniture"],
-  },
-  {
-    id: 5,
-    name: "Grapevine Vintage",
-    image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Grapevine",
-    city: "Fort Worth",
-    tags: ["Clothing", "Accessories"],
-  },
-  {
-    id: 6,
-    name: "Benefit Boutique",
-    image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    neighborhood: "Bishop Arts",
-    city: "Dallas",
-    tags: ["Boutique", "Home Decor"],
-  },
-];
+// Type alias for store
+// This matches the Supabase schema
+type Store = Database['public']['Tables']['stores']['Row'];
+
+const DEFAULT_STORE_IMAGE = "/images/store_image1.png";
 
 export default function StoreGrid() {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    getApprovedStores()
+      .then(setStores)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="py-12 text-center">Loading stores...</div>;
+  }
+  if (error) {
+    return <div className="py-12 text-center text-red-500">Error: {error}</div>;
+  }
+
   return (
     <section className="py-12">
       <div className="thriphti-container">
@@ -71,10 +47,10 @@ export default function StoreGrid() {
               key={store.id}
               id={store.id}
               name={store.name}
-              image={store.image}
-              neighborhood={store.neighborhood}
-              city={store.city}
-              tags={store.tags}
+              image={store.images?.[0] || DEFAULT_STORE_IMAGE}
+              neighborhood={''}
+              city={store.city || ''}
+              tags={store.category || []}
               index={index}
             />
           ))}

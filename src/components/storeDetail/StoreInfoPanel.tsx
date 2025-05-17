@@ -1,4 +1,3 @@
-
 import { ExternalLink, MapPin, Clock, Phone, Facebook, Instagram } from "lucide-react";
 
 interface StoreInfoPanelProps {
@@ -24,7 +23,7 @@ export default function StoreInfoPanel({
           Website
         </h3>
         <a 
-          href={`https://${website}`} 
+          href={website.startsWith('http') ? website : `https://${website}`} 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-thriphti-green hover:text-thriphti-rust flex items-center"

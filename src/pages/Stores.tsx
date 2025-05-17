@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import Footer from "@/components/Footer";
+import Layout from "@/components/layout/Layout";
 import StoresHeader from "@/components/stores/StoresHeader";
 import FilterBar from "@/components/stores/FilterBar";
 import StoreGrid from "@/components/stores/StoreGrid";
@@ -8,7 +8,7 @@ import CalloutSection from "@/components/stores/CalloutSection";
 
 export default function Stores() {
   return (
-    <>
+    <Layout>
       <Helmet>
         <title>Thrift & Consignment Stores | Thriphti</title>
         <meta 
@@ -16,18 +16,13 @@ export default function Stores() {
           content="Discover hand-picked resale shops, benefit stores, and hidden gems around the Dallas-Fort Worth metroplex."
         />
       </Helmet>
-      
-      <div className="min-h-screen bg-thriphti-ivory">
-        <main className="pt-16">
-          <StoresHeader />
-          <FilterBar />
-          <StoreGrid />
-          <EditorsPicks />
-          <CalloutSection />
-        </main>
-        
-        <Footer />
-      </div>
-    </>
+      <main>
+        <StoresHeader />
+        <FilterBar />
+        <StoreGrid />
+        <EditorsPicks />
+        <CalloutSection />
+      </main>
+    </Layout>
   );
 }

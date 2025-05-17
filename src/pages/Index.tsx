@@ -1,16 +1,15 @@
 import HeroSection from "@/components/HeroSection";
 import EventGrid from "@/components/EventGrid";
-import Footer from "@/components/Footer";
+import Layout from "@/components/layout/Layout";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <Layout>
       <HeroSection />
-      <main className="bg-white py-16">
+      <div className="bg-white py-16">
         <EventGrid />
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </Layout>
   );
 };
 

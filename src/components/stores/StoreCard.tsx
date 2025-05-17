@@ -1,12 +1,12 @@
-
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fadeInUpVariants } from "@/lib/motion";
+import { Link } from 'react-router-dom';
 
 interface StoreCardProps {
-  id: number;
+  id: string;
   name: string;
   image: string;
   neighborhood: string;
@@ -17,6 +17,7 @@ interface StoreCardProps {
 }
 
 export default function StoreCard({ 
+  id, 
   name, 
   image, 
   neighborhood, 
@@ -71,8 +72,9 @@ export default function StoreCard({
       
       <Button 
         className="w-full bg-thriphti-rust hover:bg-thriphti-rust/90 text-white mt-auto"
+        asChild
       >
-        View Profile
+        <Link to={`/stores/${id}`}>View Profile</Link>
       </Button>
     </motion.div>
   );
