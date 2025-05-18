@@ -37,15 +37,20 @@ console.log('Supabase client initialization complete');
 // Export a function to check client health
 export function checkSupabaseConnection(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    supabase.from('articles')
-      .select('count', { count: 'exact', head: true })
-      .then(response => {
-        console.log('Supabase connection check response:', response);
-        resolve(!response.error);
-      })
-      .catch(error => {
-        console.error('Supabase connection check failed:', error);
-        resolve(false);
-      });
+    try {
+      supabase.from('articles')
+        .select('count', { count: 'exact', head: true })
+        .then(response => {
+          console.log('Supabase connection check response:', response);
+          resolve(!response.error);
+        })
+        .catch(error => {
+          console.error('Supabase connection check failed:', error);
+          resolve(false);
+        });
+    } catch (error) {
+      console.error('Unexpected error during Supabase connection check:', error);
+      resolve(false);
+    }
   });
 }
