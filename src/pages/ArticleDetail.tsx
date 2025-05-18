@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
@@ -137,6 +136,7 @@ export default function ArticleDetail() {
                   src={article.image}
                   alt={article.title}
                   className="w-full h-auto"
+                  tags={article.tags}
                 />
               </div>
               
@@ -194,6 +194,7 @@ export default function ArticleDetail() {
                       excerpt={related.excerpt || ''}
                       image={related.image || ''}
                       link={`/articles/${related.slug}`}
+                      tags={related.tags}
                     />
                   ))}
                 </div>
@@ -254,6 +255,7 @@ export default function ArticleDetail() {
                   excerpt={related.excerpt || ''}
                   image={related.image || ''}
                   link={`/articles/${related.slug}`}
+                  tags={related.tags}
                 />
               ))}
             </div>

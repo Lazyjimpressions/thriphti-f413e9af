@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { fadeInUpVariants } from "@/lib/motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Article } from "@/types/article";
 import { ExternalLink } from "lucide-react";
 import ArticleImage from "./ArticleImage";
@@ -28,6 +27,7 @@ export default function ArticleCard({ article, index }: ArticleCardProps) {
             src={article.image} 
             alt={article.title}
             className="w-full h-full"
+            tags={article.tags}
           />
           <CardContent className="p-5">
             <Badge className="mb-3 bg-thriphti-green hover:bg-thriphti-green/90 text-white">

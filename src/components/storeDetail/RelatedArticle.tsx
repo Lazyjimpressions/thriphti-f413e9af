@@ -7,9 +7,10 @@ interface RelatedArticleProps {
   excerpt: string;
   image: string;
   link: string;
+  tags?: string[];
 }
 
-export default function RelatedArticle({ title, excerpt, image, link }: RelatedArticleProps) {
+export default function RelatedArticle({ title, excerpt, image, link, tags = [] }: RelatedArticleProps) {
   return (
     <Link to={link} className="group block">
       <div className="flex gap-3 items-center">
@@ -19,6 +20,7 @@ export default function RelatedArticle({ title, excerpt, image, link }: RelatedA
             alt={title}
             aspectRatio="square"
             className="transition-transform group-hover:scale-105"
+            tags={tags}
           />
         </div>
         <div>
