@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
 
@@ -13,6 +13,12 @@ interface ArticleImageProps {
 
 export default function ArticleImage({ src, alt, className, aspectRatio = "wide", tags = [] }: ArticleImageProps) {
   const [imageError, setImageError] = useState(false);
+  
+  // Debug logs
+  useEffect(() => {
+    console.log(`ArticleImage rendering for "${alt}" with tags:`, tags);
+    console.log(`Image source: ${src || 'none'}, Error state: ${imageError}`);
+  }, [src, tags, imageError, alt]);
 
   // Calculate aspect ratio based on the provided value
   const getAspectRatioClass = () => {
@@ -31,12 +37,22 @@ export default function ArticleImage({ src, alt, className, aspectRatio = "wide"
     }
   };
 
+  // Check if this is a guide article - case insensitive check
+  const isGuide = tags.some(tag => tag.toLowerCase() === "guide");
+  
+  // Debug log for guide detection
+  useEffect(() => {
+    console.log(`Is guide article: ${isGuide}`);
+    if (isGuide) {
+      console.log("Guide article detected, will use guide fallback image if needed");
+    }
+  }, [isGuide, tags]);
+
   // Determine which placeholder to use based on article tags
   const getFallbackContent = () => {
-    const isGuide = tags.includes("guide") || tags.includes("Guide");
-    
     if (isGuide) {
       // Use guide-specific placeholder image
+      console.log("Rendering guide fallback image");
       return (
         <img 
           src="/images/guide-image.png" 
@@ -64,7 +80,10 @@ export default function ArticleImage({ src, alt, className, aspectRatio = "wide"
           src={src}
           alt={alt}
           className="object-cover w-full h-full transition-opacity"
-          onError={() => setImageError(true)}
+          onError={() => {
+            console.log(`Image error for: ${src}`);
+            setImageError(true);
+          }}
         />
       )}
     </div>

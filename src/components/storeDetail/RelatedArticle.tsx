@@ -11,6 +11,9 @@ interface RelatedArticleProps {
 }
 
 export default function RelatedArticle({ title, excerpt, image, link, tags = [] }: RelatedArticleProps) {
+  // Debug log to check tags are being passed correctly
+  console.log(`RelatedArticle: ${title} - tags:`, tags);
+  
   return (
     <Link to={link} className="group block">
       <div className="flex gap-3 items-center">
