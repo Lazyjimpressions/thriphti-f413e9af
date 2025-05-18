@@ -35,15 +35,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 console.log('Supabase client initialization complete');
 
 // Export a function to check client health
-export function checkSupabaseConnection() {
-  return supabase.from('articles')
-    .select('count', { count: 'exact', head: true })
-    .then(response => {
-      console.log('Supabase connection check response:', response);
-      return !response.error;
-    })
-    .catch(error => {
-      console.error('Supabase connection check failed:', error);
-      return false;
-    });
+export function checkSupabaseConnection(): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    supabase.from('articles')
+      .select('count', { count: 'exact', head: true })
+      .then(response => {
+        console.log('Supabase connection check response:', response);
+        resolve(!response.error);
+      })
+      .catch(error => {
+        console.error('Supabase connection check failed:', error);
+        resolve(false);
+      });
+  });
 }
