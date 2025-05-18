@@ -1,190 +1,217 @@
-# THRIPHTI.md
+# THRIPHTI – Unified Project Reference & Product Requirements Document (PRD)
 
 ## Overview
 
-**Thriphti.com** is a curated platform that connects users with thrift, vintage, resale, and secondhand stores across the Dallas–Fort Worth metroplex. It is designed to be both consumer-facing and merchant-friendly, eventually enabling store owners to manage their own profiles and listings.
+**Thriphti.com** is a mobile-first, editorially curated local discovery platform that connects users with garage sales, consignment shops, flea markets, and vintage resale events across the Dallas–Fort Worth metroplex. Designed to feel like a local friend’s recommendation—not a commercial directory—Thriphti blends storytelling, deal-finding, and neighborhood culture into one highly engaging experience.
 
-The platform includes:
+The long-term roadmap includes:
 
-* A public directory of thrift stores
-* A map-based and searchable discovery interface
-* Store profile pages with rich metadata (hours, contact, location, category tags)
-* User-submitted content (suggest a store, leave reviews)
-* Admin approval workflows for new submissions
-* A future mobile companion app
-* Plans for monetization via advertising and featured placements
+* Multi-city expansion
+* Store-owner managed profiles
+* Location-aware mobile alerts
+* Paid sponsor integrations
+
+---
+
+## Brand Voice & Design Direction
+
+* Tone: Friendly, editorial, trustworthy
+* Feels like: A curated neighborhood newsletter
+* Color palette:
+
+  * Forest green `#2F4F4F`
+  * Rust orange `#D96E30`
+  * Apricot gold `#F6B860`
+  * Soft ivory `#FDF9F2`
+  * Charcoal `#2B2B2B`
+* Fonts:
+
+  * Headlines: DM Serif Display or Playfair Display
+  * Body: Inter or Work Sans
+* Logo direction: lowercase “thriphti”, minimalist serif/sans hybrid
 
 ---
 
 ## Tech Stack
 
-| Layer          | Technology                                    |
-| -------------- | --------------------------------------------- |
-| Frontend       | React (via Lovable.dev)                       |
-| Backend/API    | Supabase (Database + Auth + Edge Functions)   |
-| Hosting        | Netlify                                       |
-| Authentication | Supabase Auth (email/password and magic link) |
-| AI Support     | OpenAI (via Cursor + ChatGPT)                 |
-| Map Service    | Leaflet.js or Google Maps API (TBD)           |
-
----
-
-## Supabase Setup
-
-### Tables
-
-#### 1. `stores`
-
-Stores listed on the platform (public-facing).
-
-```sql
-CREATE TABLE stores (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  description TEXT,
-  website TEXT,
-  phone TEXT,
-  email TEXT,
-  location GEOGRAPHY(Point, 4326),
-  address TEXT,
-  city TEXT,
-  state TEXT DEFAULT 'TX',
-  zip TEXT,
-  category TEXT[],
-  approved BOOLEAN DEFAULT FALSE,
-  submitted_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMP DEFAULT now()
-);
-```
-
-#### 2. `profiles`
-
-Extended user data for store owners, admins, and consumers.
-
-```sql
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY,
-  full_name TEXT,
-  email TEXT,
-  role TEXT CHECK (role IN ('user', 'admin', 'store_owner')) DEFAULT 'user',
-  created_at TIMESTAMP DEFAULT now()
-);
-```
-
-#### 3. `store_reviews`
-
-User-submitted store reviews.
-
-```sql
-CREATE TABLE store_reviews (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id UUID REFERENCES stores(id),
-  user_id UUID REFERENCES profiles(id),
-  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-  comment TEXT,
-  created_at TIMESTAMP DEFAULT now()
-);
-```
-
-#### 4. `submissions`
-
-Unapproved store suggestions or edits from users.
-
-```sql
-CREATE TABLE submissions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type TEXT CHECK (type IN ('new_store', 'edit')),
-  submitted_data JSONB,
-  status TEXT CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
-  submitted_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMP DEFAULT now()
-);
-```
-
----
-
-## Supabase Auth
-
-* Users are stored in `auth.users`, extended in `profiles` via the `id`.
-* Magic link or email/password logins.
-* Role-based access (`user`, `admin`, `store_owner`) controls dashboard access and store-editing permissions.
-
----
-
-## Page Structure
-
-| Path          | Functionality                                 |
+| Layer         | Technology                                    |
 | ------------- | --------------------------------------------- |
-| `/`           | Home page with map and search bar             |
-| `/stores/:id` | Public store profile with reviews and details |
-| `/submit`     | Form to submit new stores or corrections      |
-| `/dashboard`  | Store owner dashboard (future)                |
-| `/admin`      | Admin approval queue for store submissions    |
-| `/login`      | User auth page (magic link or password)       |
+| Frontend      | React + TypeScript via Lovable.dev            |
+| UI Components | Tailwind CSS + ShadCN UI + Lucide Icons       |
+| Animations    | Framer Motion                                 |
+| Backend       | Supabase (DB + Auth + Storage)                |
+| Hosting       | Netlify                                       |
+| Email         | Resend / MailerLite                           |
+| Automation    | n8n (AI workflows, notifications, moderation) |
+| AI Assistant  | OpenAI (via Cursor + Lovable.dev prompts)     |
+| Versioning    | GitHub (connected to Lovable.dev)             |
 
 ---
 
-## API and Client Setup
+## Supabase Schema Summary
 
-### Supabase Client (`src/services/supabase.ts`)
+### `stores`
 
-```ts
-import { createClient } from '@supabase/supabase-js';
+Public-facing thrift and resale store listings.
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
-export default supabase;
+```sql
+id UUID PRIMARY KEY,
+name TEXT,
+description TEXT,
+address TEXT, city TEXT, zip TEXT,
+location GEOGRAPHY(Point, 4326),
+category TEXT[],
+website TEXT, phone TEXT,
+approved BOOLEAN DEFAULT FALSE,
+submitted_by UUID REFERENCES profiles(id),
+created_at TIMESTAMP DEFAULT now()
 ```
 
-### Store Fetch Example
+### `profiles`
 
-```ts
-const { data, error } = await supabase
-  .from('stores')
-  .select('*')
-  .eq('approved', true);
+Extended user data
+
+```sql
+id UUID PRIMARY KEY,
+email TEXT,
+full_name TEXT,
+role TEXT CHECK (role IN ('user','admin','store_owner')) DEFAULT 'user',
+created_at TIMESTAMP DEFAULT now()
+```
+
+### `store_reviews`
+
+User-submitted store reviews
+
+```sql
+id UUID PRIMARY KEY,
+store_id UUID REFERENCES stores(id),
+user_id UUID REFERENCES profiles(id),
+rating INTEGER CHECK (rating >=1 AND <=5),
+comment TEXT,
+status TEXT DEFAULT 'pending',
+created_at TIMESTAMP
+```
+
+### `submissions`
+
+Unapproved new store submissions
+
+```sql
+id UUID,
+type TEXT CHECK (type IN ('new_store', 'edit')),
+submitted_data JSONB,
+status TEXT CHECK (status IN ('pending', 'approved', 'rejected')),
+submitted_by UUID,
+created_at TIMESTAMP
+```
+
+### `articles`
+
+Editorial content and guides
+
+```sql
+id UUID,
+title TEXT, slug TEXT,
+body TEXT, excerpt TEXT,
+tags TEXT[], city TEXT,
+author TEXT, image_url TEXT,
+is_featured BOOLEAN,
+published_at TIMESTAMP
+```
+
+### `favorites`
+
+Saved stores by users
+
+```sql
+user_id UUID, store_id UUID
+```
+
+### `email_preferences`
+
+User notification settings
+
+```sql
+user_id UUID PRIMARY KEY,
+frequency TEXT, cities TEXT[]
 ```
 
 ---
 
-## Admin Workflow
+## Page Structure & Routes
 
-1. User submits a new store or edit → stored in `submissions`
-2. Admin reviews via `/admin`
-3. On approval, submission data is merged into `stores`
-4. Optionally notify user via email
-
----
-
-## AI Agent Guidelines
-
-When modifying code, AI should:
-
-* Use Supabase for all CRUD operations unless specified otherwise.
-* Maintain clear separation between public data (`stores`) and gated content (`profiles`, `submissions`).
-* Auto-tag submissions with geolocation when address is available.
-* Favor JSON-based submissions (`submissions.submitted_data`) for schema flexibility.
-* Use optimistic UI updates where possible (e.g., user adds review before server confirms).
+| Path              | Functionality                                 |
+| ----------------- | --------------------------------------------- |
+| `/`               | Homepage: featured deal, hero, filters        |
+| `/stores`         | Store index: filterable, searchable grid      |
+| `/stores/:id`     | Store profile with map, reviews               |
+| `/articles`       | Article index by tag or city                  |
+| `/articles/:slug` | Article detail page                           |
+| `/submit`         | Store suggestion form                         |
+| `/login`          | Magic link auth                               |
+| `/admin`          | Admin dashboard for submissions & reviews     |
+| `/dashboard`      | Future user dashboard (saved, reviews, prefs) |
 
 ---
 
-## Future Enhancements
+## User Roles & Capabilities
 
-* Thrift Store Owner login + profile claim system
-* Store image uploads via Supabase Storage
-* Featured placement (ads/sponsorships)
-* Heatmap view of DFW thrift density
-* Mobile app with location alerts
-* Public and member-only directory filters
+| Role        | Capabilities                                                            |
+| ----------- | ----------------------------------------------------------------------- |
+| Visitor     | Browse, read, search, filter, submit store or review (pending approval) |
+| Registered  | Save stores, submit reviews (tied to user ID), set email preferences    |
+| Admin       | Approve/reject reviews, submissions, publish articles                   |
+| Store Owner | (Future) Claim/edit profile, respond to reviews, submit store updates   |
 
 ---
 
-## Contribution Guidelines
+## Component Library Modules
 
-* All Supabase schema changes must be reflected in this file
-* Use cursor-friendly comments for AI agents (e.g., `// @cursor: editable block`)
-* All functions must be idempotent and role-secure
-* Write interfaces/types for every Supabase interaction
+* `HeroSection.tsx`
+* `FeaturedDealCard.tsx`
+* `EventCard.tsx`
+* `StoreCard.tsx`
+* `CityFilterBar.tsx`
+* `ReviewBlock.tsx`
+* `BlogPostCard.tsx`
+* `UserFavorites.tsx`
+* `AdminReviewTable.tsx`
+* `StoreClaimForm.tsx`
+
+---
+
+## Content & Moderation Workflow
+
+* All reviews default to `pending`
+* Admin moderation required (via `/admin`)
+* Store submissions reviewed via `submissions`
+* Articles can be drafted in Supabase or AI-assisted (n8n)
+* OpenAI summarization for excerpts, SEO, and tag generation
+
+---
+
+## AI Agent Prompts & Best Practices
+
+* Use Supabase client SDK for all read/write
+* Do not bypass RLS or public/private data separation
+* Use semantic, accessible HTML and Tailwind classes
+* Animate major UI blocks with Framer Motion
+* Write all component prompts in modular, reusable format
+
+---
+
+## Next Steps
+
+* [ ] Add Articles Index Page and BlogPostCard module
+* [ ] Build mobile-friendly nav & filters
+* [ ] Complete Admin Panel (review + submissions)
+* [ ] Add save/store-to-favorites button + logic
+* [ ] Implement claim-store feature for future monetization
+* [ ] Configure personalized email digests
+* [ ] Build user dashboard for saved stores & review history
+* [ ] Finalize brand typography & lowercase logo asset
+
+---
+
+This file serves as the master system reference for AI, frontend development, Supabase schema alignment, and project onboarding across Cursor, Lovable.dev, GitHub, and Netlify.
