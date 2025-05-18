@@ -23,9 +23,8 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
     setLoading(true);
     setError(null);
     
-    // Debug Supabase client configuration
-    console.log("Supabase client URL:", supabase.supabaseUrl);
-    console.log("Auth headers available:", !!supabase.auth.headers());
+    // Debug Supabase client configuration - using public methods only
+    console.log("Fetching articles from Supabase");
     
     getAllArticles()
       .then((data) => {

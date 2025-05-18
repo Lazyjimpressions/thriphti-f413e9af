@@ -36,7 +36,8 @@ console.log('Supabase client initialization complete');
 
 // Export a function to check client health
 export function checkSupabaseConnection() {
-  return supabase.rpc('ping')
+  return supabase.from('articles')
+    .select('count', { count: 'exact', head: true })
     .then(response => {
       console.log('Supabase connection check response:', response);
       return !response.error;

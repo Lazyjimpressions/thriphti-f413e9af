@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import type { Database } from '@/types/supabase';
 
@@ -102,13 +103,9 @@ export async function addStoreReview(
  * @throws Error if the query fails
  */
 export async function getAllArticles(): Promise<Article[]> {
-  console.log("Fetching articles with URL:", supabase.supabaseUrl);
+  console.log("Fetching articles from Supabase");
   
   try {
-    // Log headers for debugging (redacting actual values for security)
-    const headers = supabase.auth.headers();
-    console.log("Request headers available:", headers ? "Yes" : "No");
-    
     const { data, error } = await supabase
       .from('articles')
       .select('*')
