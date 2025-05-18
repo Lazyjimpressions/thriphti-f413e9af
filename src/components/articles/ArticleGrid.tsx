@@ -4,6 +4,8 @@ import ArticleCard from "./ArticleCard";
 import { getAllArticles } from "@/integrations/supabase/queries";
 import type { Database } from '@/types/supabase';
 import type { Article } from "@/types/article";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Type alias for article from Supabase
 type SupabaseArticle = Database['public']['Tables']['articles']['Row'];
@@ -20,8 +22,15 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
   useEffect(() => {
     setLoading(true);
     setError(null);
+    
+    // Debug Supabase client configuration
+    console.log("Supabase client URL:", supabase.supabaseUrl);
+    console.log("Auth headers available:", !!supabase.auth.headers());
+    
     getAllArticles()
       .then((data) => {
+        console.log("Articles data received:", data ? `${data.length} articles` : "No data");
+        
         // Map the Supabase article data to match our Article interface
         const mappedArticles = data.map((article: SupabaseArticle): Article => ({
           ...article,
@@ -29,7 +38,15 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
         }));
         setArticles(mappedArticles);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        console.error("Error fetching articles:", err);
+        setError(err.message);
+        toast({
+          title: "Error loading articles",
+          description: `${err.message}. Please try refreshing the page.`,
+          variant: "destructive"
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,7 +76,17 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
     return <div className="text-center py-12">Loading articles...</div>;
   }
   if (error) {
-    return <div className="text-center py-12 text-red-500">Error: {error}</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-500 mb-4">Error: {error}</div>
+        <button 
+          className="bg-thriphti-green text-white px-4 py-2 rounded hover:bg-thriphti-green/90"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (

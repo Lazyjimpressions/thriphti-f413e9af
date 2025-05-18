@@ -16,9 +16,33 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error('Missing Supabase configuration values. Please check client.ts file.');
 }
 
+console.log('Initializing Supabase client with URL:', SUPABASE_URL);
+
 /**
  * Supabase client instance with type safety
  * Usage:
  * import { supabase } from "@/integrations/supabase/client";
  */
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
+// Log when the client is initialized
+console.log('Supabase client initialization complete');
+
+// Export a function to check client health
+export function checkSupabaseConnection() {
+  return supabase.rpc('ping')
+    .then(response => {
+      console.log('Supabase connection check response:', response);
+      return !response.error;
+    })
+    .catch(error => {
+      console.error('Supabase connection check failed:', error);
+      return false;
+    });
+}

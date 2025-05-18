@@ -102,13 +102,29 @@ export async function addStoreReview(
  * @throws Error if the query fails
  */
 export async function getAllArticles(): Promise<Article[]> {
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .order('publishedat', { ascending: false });
+  console.log("Fetching articles with URL:", supabase.supabaseUrl);
   
-  if (error) throw new Error(`Failed to fetch articles: ${error.message}`);
-  return data;
+  try {
+    // Log headers for debugging (redacting actual values for security)
+    const headers = supabase.auth.headers();
+    console.log("Request headers available:", headers ? "Yes" : "No");
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .order('publishedat', { ascending: false });
+    
+    if (error) {
+      console.error("Supabase error details:", error);
+      throw new Error(`Failed to fetch articles: ${error.message}`);
+    }
+    
+    console.log("Articles fetched successfully:", data?.length || 0);
+    return data || [];
+  } catch (e: any) {
+    console.error("Exception in getAllArticles:", e);
+    throw new Error(`Failed to fetch articles: ${e.message}`);
+  }
 }
 
 /**
@@ -160,4 +176,4 @@ export async function getStoreReviews(storeId: string): Promise<(StoreReview & {
   
   if (error) throw new Error(`Failed to fetch store reviews: ${error.message}`);
   return data;
-} 
+}
