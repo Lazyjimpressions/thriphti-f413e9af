@@ -20,6 +20,7 @@ export type Database = {
           image: string | null
           publishedat: string
           slug: string
+          source_url: string | null
           tags: string[] | null
           title: string
         }
@@ -33,6 +34,7 @@ export type Database = {
           image?: string | null
           publishedat?: string
           slug: string
+          source_url?: string | null
           tags?: string[] | null
           title: string
         }
@@ -46,6 +48,7 @@ export type Database = {
           image?: string | null
           publishedat?: string
           slug?: string
+          source_url?: string | null
           tags?: string[] | null
           title?: string
         }
