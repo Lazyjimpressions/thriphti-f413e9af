@@ -6,9 +6,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
-// Hardcoded Supabase configuration values for both Lovable and Cursor environments
-const SUPABASE_URL = 'https://olmlcbsveidqoxabfnkm.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbWxjYnN2ZWlkcW94YWJmbmttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM4OTk3OTcsImV4cCI6MjAyOTQ3NTc5N30.0jXqEUNvnF5YYYU6zcvqBlxJy-0hM2rqHsYmDdbezGM';
+// Supabase configuration values for this project
+const SUPABASE_URL = 'https://gqjoebrphojntidztfyd.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxam9lYnJwaG9qbnRpZHp0ZnlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyNzUxODIsImV4cCI6MjA2Mjg1MTE4Mn0.WCd3jkNWtFJ1euSGA55cxV0tFm0h2p0fZFDxV7zdCEM';
 
 // Check if Supabase URL is available (optional but helpful for debugging)
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
