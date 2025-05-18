@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, Share2, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import ArticleImage from "@/components/articles/ArticleImage";
 
 export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -132,8 +133,8 @@ export default function ArticleDetail() {
             >
               {/* Featured Image */}
               <div className="mb-8 rounded-lg overflow-hidden">
-                <img
-                  src={article.image || ''}
+                <ArticleImage
+                  src={article.image}
                   alt={article.title}
                   className="w-full h-auto"
                 />

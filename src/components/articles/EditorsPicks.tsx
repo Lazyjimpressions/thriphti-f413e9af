@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import ArticleImage from "./ArticleImage";
 
 export default function EditorsPicks() {
   // Mock data for editor's picks
@@ -34,10 +35,10 @@ export default function EditorsPicks() {
           <Link key={pick.id} to={`/articles/${pick.slug}`}>
             <Card className="h-full overflow-hidden hover:shadow-md transition-all border-thriphti-green/20">
               <div className="h-48 overflow-hidden">
-                <img 
+                <ArticleImage 
                   src={pick.image} 
                   alt={pick.title} 
-                  className="object-cover w-full h-full"
+                  className="w-full h-full"
                 />
               </div>
               <CardContent className="p-5">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Article } from "@/types/article";
 import { ExternalLink } from "lucide-react";
+import ArticleImage from "./ArticleImage";
 
 interface ArticleCardProps {
   article: Article;
@@ -23,13 +24,11 @@ export default function ArticleCard({ article, index }: ArticleCardProps) {
     >
       <Link to={`/articles/${article.slug}`}>
         <Card className="overflow-hidden h-full hover:shadow-md transition-all">
-          <AspectRatio ratio={16/9}>
-            <img 
-              src={article.image} 
-              alt={article.title}
-              className="object-cover w-full h-full"
-            />
-          </AspectRatio>
+          <ArticleImage 
+            src={article.image} 
+            alt={article.title}
+            className="w-full h-full"
+          />
           <CardContent className="p-5">
             <Badge className="mb-3 bg-thriphti-green hover:bg-thriphti-green/90 text-white">
               {article.category}
