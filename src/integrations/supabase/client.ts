@@ -1,17 +1,19 @@
+
 /**
  * Supabase client configuration
- * This file sets up the Supabase client with proper type safety and environment variables
+ * This file sets up the Supabase client with proper type safety and hardcoded values
  */
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
-// Environment variables for Supabase configuration
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Hardcoded Supabase configuration values for both Lovable and Cursor environments
+const SUPABASE_URL = 'https://olmlcbsveidqoxabfnkm.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbWxjYnN2ZWlkcW94YWJmbmttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM4OTk3OTcsImV4cCI6MjAyOTQ3NTc5N30.0jXqEUNvnF5YYYU6zcvqBlxJy-0hM2rqHsYmDdbezGM';
 
-// Validate environment variables
+// Check if Supabase URL is available (optional but helpful for debugging)
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+  console.error('Missing Supabase configuration values. Please check client.ts file.');
+  throw new Error('Missing Supabase configuration values. Please check client.ts file.');
 }
 
 /**
