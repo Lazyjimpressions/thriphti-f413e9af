@@ -38,6 +38,7 @@ console.log('Supabase client initialization complete');
 export function checkSupabaseConnection(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     try {
+      // Use the Promise returned by the Supabase query
       supabase.from('articles')
         .select('count', { count: 'exact', head: true })
         .then(response => {
