@@ -9,16 +9,25 @@ interface ArticleImageProps {
   className?: string;
   aspectRatio?: "square" | "video" | "wide" | number;
   tags?: string[];
+  category?: string;
 }
 
-export default function ArticleImage({ src, alt, className, aspectRatio = "wide", tags = [] }: ArticleImageProps) {
+export default function ArticleImage({ 
+  src, 
+  alt, 
+  className, 
+  aspectRatio = "wide", 
+  tags = [], 
+  category 
+}: ArticleImageProps) {
   const [imageError, setImageError] = useState(false);
   
   // Debug logs
   useEffect(() => {
     console.log(`ArticleImage rendering for "${alt}" with tags:`, tags);
     console.log(`Image source: ${src || 'none'}, Error state: ${imageError}`);
-  }, [src, tags, imageError, alt]);
+    console.log(`Article category: ${category || 'none'}`);
+  }, [src, tags, imageError, alt, category]);
 
   // Calculate aspect ratio based on the provided value
   const getAspectRatioClass = () => {
@@ -37,8 +46,10 @@ export default function ArticleImage({ src, alt, className, aspectRatio = "wide"
     }
   };
 
-  // Check if this is a guide article - case insensitive check
-  const isGuide = tags.some(tag => tag.toLowerCase() === "guide");
+  // Check if this is a guide article - case insensitive check for both tags and category
+  const isGuide = 
+    tags.some(tag => tag.toLowerCase() === "guide") || 
+    (category?.toLowerCase() === "guide");
   
   // Debug log for guide detection
   useEffect(() => {
@@ -46,7 +57,7 @@ export default function ArticleImage({ src, alt, className, aspectRatio = "wide"
     if (isGuide) {
       console.log("Guide article detected, will use guide fallback image if needed");
     }
-  }, [isGuide, tags]);
+  }, [isGuide, tags, category]);
 
   // Determine which placeholder to use based on article tags
   const getFallbackContent = () => {

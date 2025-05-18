@@ -137,6 +137,7 @@ export default function ArticleDetail() {
                   alt={article.title}
                   className="w-full h-auto"
                   tags={article.tags}
+                  category={article.category}
                 />
               </div>
               
@@ -195,6 +196,7 @@ export default function ArticleDetail() {
                       image={related.image || ''}
                       link={`/articles/${related.slug}`}
                       tags={related.tags}
+                      category={related.category}
                     />
                   ))}
                 </div>
@@ -256,6 +258,7 @@ export default function ArticleDetail() {
                   image={related.image || ''}
                   link={`/articles/${related.slug}`}
                   tags={related.tags}
+                  category={related.category}
                 />
               ))}
             </div>

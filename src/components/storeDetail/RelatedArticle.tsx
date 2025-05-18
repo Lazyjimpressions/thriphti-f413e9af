@@ -8,11 +8,12 @@ interface RelatedArticleProps {
   image: string;
   link: string;
   tags?: string[];
+  category?: string;
 }
 
-export default function RelatedArticle({ title, excerpt, image, link, tags = [] }: RelatedArticleProps) {
-  // Debug log to check tags are being passed correctly
-  console.log(`RelatedArticle: ${title} - tags:`, tags);
+export default function RelatedArticle({ title, excerpt, image, link, tags = [], category }: RelatedArticleProps) {
+  // Debug log to check tags and category are being passed correctly
+  console.log(`RelatedArticle: ${title} - tags:`, tags, `category:`, category);
   
   return (
     <Link to={link} className="group block">
@@ -24,6 +25,7 @@ export default function RelatedArticle({ title, excerpt, image, link, tags = [] 
             aspectRatio="square"
             className="transition-transform group-hover:scale-105"
             tags={tags}
+            category={category}
           />
         </div>
         <div>

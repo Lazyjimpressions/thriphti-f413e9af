@@ -28,6 +28,7 @@ export default function ArticleCard({ article, index }: ArticleCardProps) {
             alt={article.title}
             className="w-full h-full"
             tags={article.tags}
+            category={article.category}
           />
           <CardContent className="p-5">
             <Badge className="mb-3 bg-thriphti-green hover:bg-thriphti-green/90 text-white">
