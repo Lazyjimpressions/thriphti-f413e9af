@@ -1,13 +1,12 @@
+
 import { useEffect, useMemo, useState } from "react";
 import ArticleCard from "./ArticleCard";
 import { getAllArticles } from "@/integrations/supabase/queries";
 import type { Database } from '@/types/supabase';
+import type { Article } from "@/types/article";
 
-// Type alias for article
-// This matches the Supabase schema
-// You can adjust the fields as needed
-// (e.g., if you want to include relations)
-type Article = Database['public']['Tables']['articles']['Row'];
+// Type alias for article from Supabase
+type SupabaseArticle = Database['public']['Tables']['articles']['Row'];
 
 interface ArticleGridProps {
   filter: string;
@@ -22,7 +21,14 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
     setLoading(true);
     setError(null);
     getAllArticles()
-      .then((data) => setArticles(data))
+      .then((data) => {
+        // Map the Supabase article data to match our Article interface
+        const mappedArticles = data.map((article: SupabaseArticle): Article => ({
+          ...article,
+          publishedAt: article.publishedat // Map publishedat to publishedAt
+        }));
+        setArticles(mappedArticles);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);

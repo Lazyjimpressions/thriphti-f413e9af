@@ -7,7 +7,7 @@ import { staggerContainerVariants } from "@/lib/motion";
 // Sample editor's picks data
 const editorsPicks = [
   {
-    id: 101,
+    id: "101", // Changed from number to string
     name: "Broadway Resale",
     image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     neighborhood: "Arlington",
@@ -15,7 +15,7 @@ const editorsPicks = [
     tags: ["Clothing", "Home Decor"],
   },
   {
-    id: 102,
+    id: "102", // Changed from number to string
     name: "Vintage Revival",
     image: "https://images.unsplash.com/photo-1567333126136-2638e2df5d42?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     neighborhood: "Bishop Arts",
@@ -23,7 +23,7 @@ const editorsPicks = [
     tags: ["Furniture", "Antiques"],
   },
   {
-    id: 103,
+    id: "103", // Changed from number to string
     name: "Second Glance",
     image: "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     neighborhood: "Richardson",

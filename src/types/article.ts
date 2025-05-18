@@ -7,7 +7,7 @@ export interface Article {
   body: string;
   image: string;
   author: string;
-  publishedAt: string;
+  publishedAt: string; // This needs to be mapped to the 'publishedat' from Supabase
   category: string;
   tags: string[];
   city: string;
