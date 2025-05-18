@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Article } from "@/types/article";
+import { ExternalLink } from "lucide-react";
 
 interface ArticleCardProps {
   article: Article;
@@ -39,6 +40,12 @@ export default function ArticleCard({ article, index }: ArticleCardProps) {
               <span>{article.author}</span>
               <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
             </div>
+            {article.source_url && (
+              <div className="mt-2 flex items-center text-xs text-thriphti-green">
+                <ExternalLink size={12} className="mr-1" />
+                <span className="truncate">Source: {new URL(article.source_url).hostname}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </Link>

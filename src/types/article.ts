@@ -11,4 +11,5 @@ export interface Article {
   category: string;
   tags: string[];
   city: string;
+  source_url?: string; // New field for source URLs
 }
