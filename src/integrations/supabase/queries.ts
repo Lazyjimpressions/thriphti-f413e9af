@@ -309,3 +309,22 @@ export async function filterEvents({
   if (error) throw new Error(`Failed to filter events: ${error.message}`);
   return data as Event[] || [];
 }
+
+/**
+ * Fetches a single event by ID
+ * @param eventId - The ID of the event to fetch
+ * @returns Promise<Event> The event
+ * @throws Error if the query fails
+ */
+export async function getEventById(eventId: string): Promise<Event> {
+  console.log(`Fetching event with ID: ${eventId}`);
+  
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .single();
+  
+  if (error) throw new Error(`Failed to fetch event: ${error.message}`);
+  return data as Event;
+}

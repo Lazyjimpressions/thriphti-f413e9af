@@ -1,4 +1,3 @@
-
 import EventCard from "./EventCard";
 import { motion } from "framer-motion";
 import { staggerContainerVariants } from "@/lib/motion";
@@ -6,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getFeaturedEvents } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function EventGrid() {
+  const navigate = useNavigate();
   const { data: events, isLoading, error } = useQuery({
     queryKey: ['todaysEvents'],
     queryFn: getFeaturedEvents,
@@ -18,13 +19,8 @@ export default function EventGrid() {
     if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      // Provide feedback when no source_url is available
-      toast({
-        title: "No external link available",
-        description: "This event doesn't have a details page yet.",
-        variant: "default"
-      });
-      console.log("Event selected but no source_url:", event.title);
+      // Navigate to the event detail page
+      navigate(`/events/${event.id}`);
     }
   };
 

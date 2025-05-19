@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/EventCard";
@@ -7,6 +6,7 @@ import { getEventsByDay } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
+import { navigate } from "@tanstack/react-router";
 
 export default function EventsByDay() {
   // Get current weekend dates with more reliable date calculations
@@ -134,14 +134,8 @@ export default function EventsByDay() {
     if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      // Give feedback when there's no source URL
-      toast({
-        title: "No external link available",
-        description: "This event doesn't have a details page yet.",
-        variant: "default"
-      });
-      
-      console.log("Event selected but no source_url:", event.title);
+      // Navigate to the event detail page
+      navigate(`/events/${event.id}`);
     }
   };
   

@@ -4,10 +4,12 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Event, EventCardProps } from "@/types/event";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 
 export default function EventCard({ event, onSelect, index = 0 }: EventCardProps & { index?: number }) {
+  const navigate = useNavigate();
+  
   const formattedDate = new Date(event.event_date).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
@@ -19,12 +21,8 @@ export default function EventCard({ event, onSelect, index = 0 }: EventCardProps
     } else if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      // Handle case when there's no source_url and no onSelect handler
-      toast({
-        title: "No details available",
-        description: "This event doesn't have a details page yet.",
-        variant: "default"
-      });
+      // Navigate to internal event detail page
+      navigate(`/events/${event.id}`);
     }
   };
 
