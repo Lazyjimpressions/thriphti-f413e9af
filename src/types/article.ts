@@ -7,9 +7,9 @@ export interface Article {
   body: string;
   image: string;
   author: string;
-  publishedAt: string; // This needs to be mapped to the 'publishedat' from Supabase
+  publishedAt: string; // This will be mapped from 'published_at' from Supabase
   category: string;
   tags: string[];
   city: string;
-  source_url?: string; // New field for source URLs
+  source_url?: string;
 }

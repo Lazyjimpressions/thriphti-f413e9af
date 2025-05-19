@@ -18,7 +18,7 @@ export type Database = {
           excerpt: string | null
           id: string
           image: string | null
-          publishedat: string
+          published_at: string
           slug: string
           source_url: string | null
           tags: string[] | null
@@ -32,7 +32,7 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image?: string | null
-          publishedat?: string
+          published_at?: string
           slug: string
           source_url?: string | null
           tags?: string[] | null
@@ -46,11 +46,47 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image?: string | null
-          publishedat?: string
+          published_at?: string
           slug?: string
           source_url?: string | null
           tags?: string[] | null
           title?: string
+        }
+        Relationships: []
+      }
+      email_preferences: {
+        Row: {
+          created_at: string
+          guides_articles: boolean
+          id: string
+          marketing_communications: boolean
+          new_events_nearby: boolean
+          store_updates: boolean
+          updated_at: string
+          user_id: string
+          weekly_newsletter: boolean
+        }
+        Insert: {
+          created_at?: string
+          guides_articles?: boolean
+          id?: string
+          marketing_communications?: boolean
+          new_events_nearby?: boolean
+          store_updates?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_newsletter?: boolean
+        }
+        Update: {
+          created_at?: string
+          guides_articles?: boolean
+          id?: string
+          marketing_communications?: boolean
+          new_events_nearby?: boolean
+          store_updates?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_newsletter?: boolean
         }
         Relationships: []
       }
@@ -108,6 +144,30 @@ export type Database = {
           title?: string
           updated_at?: string
           venue?: string | null
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -300,6 +360,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -877,6 +958,13 @@ export type Database = {
       gidx_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
       }
       json: {
         Args: { "": unknown }
@@ -2169,7 +2257,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -2292,6 +2380,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

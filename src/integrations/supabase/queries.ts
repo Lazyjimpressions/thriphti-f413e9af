@@ -9,6 +9,9 @@ type StoreReview = Database['public']['Tables']['store_reviews']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Article = Database['public']['Tables']['articles']['Row'];
 type DbEvent = Database['public']['Tables']['events']['Row'];
+type Favorite = Database['public']['Tables']['favorites']['Row'];
+type EmailPreference = Database['public']['Tables']['email_preferences']['Row'];
+type UserRole = Database['public']['Tables']['user_roles']['Row'];
 
 /**
  * Fetches all approved stores
@@ -110,7 +113,7 @@ export async function getAllArticles(): Promise<Article[]> {
     const { data, error } = await supabase
       .from('articles')
       .select('*')
-      .order('publishedat', { ascending: false });
+      .order('published_at', { ascending: false });
     
     if (error) {
       console.error("Supabase error details:", error);
@@ -333,4 +336,147 @@ export async function getEventById(eventId: string): Promise<Event> {
   
   if (error) throw new Error(`Failed to fetch event: ${error.message}`);
   return data as Event;
+}
+
+/**
+ * Adds a favorite item for a user
+ * @param userId - The user ID
+ * @param itemType - The type of item (store, article, event)
+ * @param itemId - The ID of the favorited item
+ * @returns Promise<Favorite> The created favorite
+ * @throws Error if the operation fails
+ */
+export async function addFavorite(userId: string, itemType: string, itemId: string): Promise<Favorite> {
+  const { data, error } = await supabase
+    .from('favorites')
+    .insert({
+      user_id: userId,
+      item_type: itemType,
+      item_id: itemId
+    })
+    .select()
+    .single();
+  
+  if (error) throw new Error(`Failed to add favorite: ${error.message}`);
+  return data;
+}
+
+/**
+ * Removes a favorite item for a user
+ * @param userId - The user ID
+ * @param itemType - The type of item (store, article, event)
+ * @param itemId - The ID of the favorited item
+ * @returns Promise<void>
+ * @throws Error if the operation fails
+ */
+export async function removeFavorite(userId: string, itemType: string, itemId: string): Promise<void> {
+  const { error } = await supabase
+    .from('favorites')
+    .delete()
+    .eq('user_id', userId)
+    .eq('item_type', itemType)
+    .eq('item_id', itemId);
+  
+  if (error) throw new Error(`Failed to remove favorite: ${error.message}`);
+}
+
+/**
+ * Gets all favorites for a user
+ * @param userId - The user ID
+ * @returns Promise<Favorite[]> Array of favorites
+ * @throws Error if the operation fails
+ */
+export async function getUserFavorites(userId: string): Promise<Favorite[]> {
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('*')
+    .eq('user_id', userId);
+  
+  if (error) throw new Error(`Failed to get user favorites: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Gets email preferences for a user or creates default preferences if none exist
+ * @param userId - The user ID
+ * @returns Promise<EmailPreference> The user's email preferences
+ * @throws Error if the operation fails
+ */
+export async function getUserEmailPreferences(userId: string): Promise<EmailPreference> {
+  const { data, error } = await supabase
+    .from('email_preferences')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  
+  if (error) throw new Error(`Failed to get email preferences: ${error.message}`);
+  
+  if (!data) {
+    // Create default preferences
+    const { data: newPrefs, error: insertError } = await supabase
+      .from('email_preferences')
+      .insert({
+        user_id: userId
+      })
+      .select()
+      .single();
+    
+    if (insertError) throw new Error(`Failed to create email preferences: ${insertError.message}`);
+    return newPrefs;
+  }
+  
+  return data;
+}
+
+/**
+ * Updates email preferences for a user
+ * @param userId - The user ID
+ * @param preferences - The preferences to update
+ * @returns Promise<EmailPreference> The updated preferences
+ * @throws Error if the operation fails
+ */
+export async function updateEmailPreferences(
+  userId: string, 
+  preferences: Partial<Omit<EmailPreference, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+): Promise<EmailPreference> {
+  const { data, error } = await supabase
+    .from('email_preferences')
+    .update(preferences)
+    .eq('user_id', userId)
+    .select()
+    .single();
+  
+  if (error) throw new Error(`Failed to update email preferences: ${error.message}`);
+  return data;
+}
+
+/**
+ * Gets user roles for a specific user
+ * @param userId - The user ID
+ * @returns Promise<UserRole[]> Array of user roles
+ * @throws Error if the operation fails
+ */
+export async function getUserRoles(userId: string): Promise<UserRole[]> {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select('*')
+    .eq('user_id', userId);
+  
+  if (error) throw new Error(`Failed to get user roles: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Checks if a user has a specific role
+ * @param userId - The user ID
+ * @param role - The role to check
+ * @returns Promise<boolean> True if the user has the role
+ * @throws Error if the operation fails
+ */
+export async function hasRole(userId: string, role: Database['public']['Enums']['app_role']): Promise<boolean> {
+  const { data, error } = await supabase
+    .rpc('has_role', { _user_id: userId, _role: role });
+  
+  if (error) throw new Error(`Failed to check user role: ${error.message}`);
+  return !!data;
 }

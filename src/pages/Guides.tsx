@@ -23,7 +23,7 @@ export default function Guides() {
   // Map the database response to match our Article interface
   const articles = articlesRaw.map((article: any): Article => ({
     ...article,
-    publishedAt: article.publishedat, // Map publishedat to publishedAt
+    publishedAt: article.published_at, // Map published_at to publishedAt
   }));
   
   // Filter to only show guides

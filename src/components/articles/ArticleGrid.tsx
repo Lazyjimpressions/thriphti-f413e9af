@@ -33,8 +33,8 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
         // Map the Supabase article data to match our Article interface
         const mappedArticles = data.map((article: SupabaseArticle): Article => ({
           ...article,
-          publishedAt: article.publishedat, // Map publishedat to publishedAt
-          source_url: article.source_url || '' // Include the new source_url field
+          publishedAt: article.published_at, // Map published_at to publishedAt
+          source_url: article.source_url || '' // Include the source_url field
         }));
         setArticles(mappedArticles);
       })

@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -19,7 +18,7 @@ export type Database = {
           excerpt: string | null
           id: string
           image: string | null
-          publishedat: string
+          published_at: string  // Updated from publishedat to published_at
           slug: string
           source_url: string | null
           tags: string[] | null
@@ -33,7 +32,7 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image?: string | null
-          publishedat?: string
+          published_at?: string  // Updated from publishedat to published_at
           slug: string
           source_url?: string | null
           tags?: string[] | null
@@ -47,7 +46,7 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image?: string | null
-          publishedat?: string
+          published_at?: string  // Updated from publishedat to published_at
           slug?: string
           source_url?: string | null
           tags?: string[] | null
@@ -297,6 +296,111 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      favorites: {
+        Row: {
+          id: string
+          user_id: string
+          item_type: string
+          item_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          item_type: string
+          item_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          item_type?: string
+          item_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      email_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          weekly_newsletter: boolean
+          new_events_nearby: boolean
+          store_updates: boolean
+          guides_articles: boolean
+          marketing_communications: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          weekly_newsletter?: boolean
+          new_events_nearby?: boolean
+          store_updates?: boolean
+          guides_articles?: boolean
+          marketing_communications?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          weekly_newsletter?: boolean
+          new_events_nearby?: boolean
+          store_updates?: boolean
+          guides_articles?: boolean
+          marketing_communications?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          user_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role?: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
         ]
       }
     }
@@ -1088,35 +1192,6 @@ export type Database = {
             }
         Returns: string
       }
-      st_asgml: {
-        Args:
-          | { "": string }
-          | {
-              geog: unknown
-              maxdecimaldigits?: number
-              options?: number
-              nprefix?: string
-              id?: string
-            }
-          | { geom: unknown; maxdecimaldigits?: number; options?: number }
-          | {
-              version: number
-              geog: unknown
-              maxdecimaldigits?: number
-              options?: number
-              nprefix?: string
-              id?: string
-            }
-          | {
-              version: number
-              geom: unknown
-              maxdecimaldigits?: number
-              options?: number
-              nprefix?: string
-              id?: string
-            }
-        Returns: string
-      }
       st_ashexewkb: {
         Args: { "": unknown }
         Returns: string
@@ -1802,7 +1877,10 @@ export type Database = {
         Returns: boolean
       }
       st_perimeter: {
-        Args: { "": unknown } | { geog: unknown; use_spheroid?: boolean }
+        Args:
+          | { "": string }
+          | { "": unknown }
+          | { geog: unknown; use_spheroid?: boolean }
         Returns: number
       }
       st_perimeter2d: {
@@ -2083,7 +2161,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       geometry_dump: {
