@@ -31,19 +31,21 @@ export default function ThisWeekend() {
             <h2 className="font-serif text-3xl text-thriphti-green">
               Find Events
             </h2>
-            <CollapsibleTrigger 
-              className="flex items-center gap-1 text-thriphti-green hover:text-thriphti-green/80"
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-            >
-              {isFilterOpen ? (
-                <>Hide Filters <ChevronUp size={18} /></>
-              ) : (
-                <>Show Filters <ChevronDown size={18} /></>
-              )}
-            </CollapsibleTrigger>
           </div>
           
           <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <div className="flex justify-between items-center mb-4">
+              <div></div> {/* Empty div for spacing */}
+              <CollapsibleTrigger 
+                className="flex items-center gap-1 text-thriphti-green hover:text-thriphti-green/80"
+              >
+                {isFilterOpen ? (
+                  <>Hide Filters <ChevronUp size={18} /></>
+                ) : (
+                  <>Show Filters <ChevronDown size={18} /></>
+                )}
+              </CollapsibleTrigger>
+            </div>
             <CollapsibleContent>
               <ThisWeekendFilter />
             </CollapsibleContent>
