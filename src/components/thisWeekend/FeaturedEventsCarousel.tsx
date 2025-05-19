@@ -47,16 +47,12 @@ export default function FeaturedEventsCarousel() {
       className="w-full"
     >
       <CarouselContent className="-ml-4">
-        {featuredEvents.map((event, index) => (
+        {featuredEvents.map((event) => (
           <CarouselItem key={event.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
             <div className="h-full">
               <EventCard
-                title={event.title}
-                image={event.image_url || '/placeholder.svg'}
-                date={new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                location={event.location}
-                tag={event.category}
-                index={index}
+                event={event}
+                onSelect={() => {}}
               />
             </div>
           </CarouselItem>

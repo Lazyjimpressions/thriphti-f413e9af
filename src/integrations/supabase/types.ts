@@ -67,6 +67,7 @@ export type Database = {
           location: string
           neighborhood: string | null
           price_range: string | null
+          source_url: string | null
           start_time: string | null
           title: string
           updated_at: string
@@ -84,6 +85,7 @@ export type Database = {
           location: string
           neighborhood?: string | null
           price_range?: string | null
+          source_url?: string | null
           start_time?: string | null
           title: string
           updated_at?: string
@@ -101,6 +103,7 @@ export type Database = {
           location?: string
           neighborhood?: string | null
           price_range?: string | null
+          source_url?: string | null
           start_time?: string | null
           title?: string
           updated_at?: string
@@ -588,6 +591,7 @@ export type Database = {
           location: string
           neighborhood: string | null
           price_range: string | null
+          source_url: string | null
           start_time: string | null
           title: string
           updated_at: string
@@ -851,6 +855,7 @@ export type Database = {
           location: string
           neighborhood: string | null
           price_range: string | null
+          source_url: string | null
           start_time: string | null
           title: string
           updated_at: string
