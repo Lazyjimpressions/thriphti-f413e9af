@@ -1,4 +1,5 @@
 
+
 export interface Event {
   id: string;
   title: string;
@@ -16,6 +17,7 @@ export interface Event {
   created_at?: string | null;
   updated_at?: string | null;
   day_of_week?: string; // Added for the events by day view
+  source_url?: string | null; // Added source_url field
 }
 
 export interface EventCardProps {
