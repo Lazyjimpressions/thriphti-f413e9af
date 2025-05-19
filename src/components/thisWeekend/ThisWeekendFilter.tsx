@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Filter, X, Search } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { X, Search } from "lucide-react";
 
 export default function ThisWeekendFilter() {
   // Filter state management (this would be connected to a real state management solution in a full implementation)
@@ -39,7 +38,7 @@ export default function ThisWeekendFilter() {
   };
   
   return (
-    <div className="bg-gray-50 rounded-lg p-6 shadow-sm border border-gray-100">
+    <div className="bg-thriphti-ivory/80 rounded-lg p-6 shadow-sm border border-thriphti-gold/10">
       {/* Search Input */}
       <div className="mb-6">
         <div className="relative">
@@ -54,24 +53,24 @@ export default function ThisWeekendFilter() {
       
       {/* Active Filters */}
       {activeFilters.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 pb-4 border-b border-gray-200">
-          <div className="flex items-center text-thriphti-green">
-            <Filter size={18} className="mr-2" />
-            <span className="font-medium">Active Filters:</span>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="flex items-center text-thriphti-green mr-2">
+            <span className="font-medium text-sm">Active:</span>
           </div>
           
           {activeFilters.map(filter => (
             <Badge 
               key={filter}
               variant="outline" 
-              className="bg-white border-thriphti-green/30 text-thriphti-green flex items-center gap-1 py-1.5 pl-3 pr-2"
+              className="bg-white border-thriphti-green/30 text-thriphti-green flex items-center gap-1 py-1 pl-3 pr-2 text-xs"
             >
               {filter}
               <button 
                 className="ml-1 hover:bg-thriphti-green/10 rounded-full p-0.5"
                 onClick={() => removeFilter(filter)}
+                aria-label={`Remove ${filter} filter`}
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             </Badge>
           ))}
@@ -79,7 +78,7 @@ export default function ThisWeekendFilter() {
           {activeFilters.length > 0 && (
             <Button 
               variant="link" 
-              className="text-thriphti-green text-sm hover:text-thriphti-green/80"
+              className="text-thriphti-green text-xs hover:text-thriphti-green/80 p-0 h-auto"
               onClick={clearAllFilters}
             >
               Clear All
@@ -89,10 +88,10 @@ export default function ThisWeekendFilter() {
       )}
       
       {/* Filter Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filterCategories.map(category => (
           <div key={category.name}>
-            <h4 className="font-medium mb-2 text-thriphti-charcoal">{category.name}</h4>
+            <h4 className="font-medium mb-3 text-sm text-thriphti-charcoal">{category.name}</h4>
             <div className="flex flex-wrap gap-2">
               {category.options.map(option => {
                 const isActive = activeFilters.includes(option);
@@ -100,7 +99,11 @@ export default function ThisWeekendFilter() {
                   <Badge 
                     key={option}
                     variant={isActive ? "default" : "outline"}
-                    className={`cursor-pointer hover:scale-105 transition-transform ${isActive ? 'bg-thriphti-green hover:bg-thriphti-green/90' : 'hover:bg-gray-100'}`}
+                    className={`cursor-pointer text-xs hover:scale-105 transition-transform ${
+                      isActive 
+                        ? 'bg-thriphti-green hover:bg-thriphti-green/90' 
+                        : 'hover:bg-gray-100'
+                    }`}
                     onClick={() => toggleFilter(option)}
                   >
                     {option}
@@ -110,42 +113,6 @@ export default function ThisWeekendFilter() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Mobile Filters */}
-      <div className="md:hidden mt-4 pt-4 border-t border-gray-200">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Filter size={16} className="mr-2" />
-              More Filters
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-4">
-            <div className="space-y-4">
-              {filterCategories.map(category => (
-                <div key={category.name} className="space-y-2">
-                  <h4 className="font-medium">{category.name}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {category.options.map(option => {
-                      const isActive = activeFilters.includes(option);
-                      return (
-                        <Badge 
-                          key={option}
-                          variant={isActive ? "default" : "outline"}
-                          className={`cursor-pointer ${isActive ? 'bg-thriphti-green hover:bg-thriphti-green/90' : 'hover:bg-gray-100'}`}
-                          onClick={() => toggleFilter(option)}
-                        >
-                          {option}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
     </div>
   );
