@@ -5,6 +5,7 @@ import { staggerContainerVariants } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
 import { getFeaturedEvents } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
+import { toast } from "@/components/ui/use-toast";
 
 export default function EventGrid() {
   const { data: events, isLoading, error } = useQuery({
@@ -17,8 +18,13 @@ export default function EventGrid() {
     if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      // If no source_url, we could navigate to a detail page if it exists
-      console.log("Event selected:", event.title);
+      // Provide feedback when no source_url is available
+      toast({
+        title: "No external link available",
+        description: "This event doesn't have a details page yet.",
+        variant: "default"
+      });
+      console.log("Event selected but no source_url:", event.title);
     }
   };
 

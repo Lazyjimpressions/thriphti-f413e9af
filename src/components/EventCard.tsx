@@ -5,12 +5,28 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Event, EventCardProps } from "@/types/event";
 import { Link } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 export default function EventCard({ event, onSelect, index = 0 }: EventCardProps & { index?: number }) {
   const formattedDate = new Date(event.event_date).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
   });
+
+  const handleViewDetails = () => {
+    if (onSelect) {
+      onSelect(event);
+    } else if (event.source_url) {
+      window.open(event.source_url, '_blank');
+    } else {
+      // Handle case when there's no source_url and no onSelect handler
+      toast({
+        title: "No details available",
+        description: "This event doesn't have a details page yet.",
+        variant: "default"
+      });
+    }
+  };
 
   return (
     <motion.div
@@ -70,24 +86,14 @@ export default function EventCard({ event, onSelect, index = 0 }: EventCardProps
           </div>
         </CardContent>
         <CardFooter>
-          {onSelect ? (
-            <Button 
-              variant="ghost" 
-              className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
-              onClick={() => onSelect && onSelect(event)}
-            >
-              View Details
-              <ArrowRight size={16} />
-            </Button>
-          ) : (
-            <Link 
-              to={event.source_url || '#'} 
-              className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
-            >
-              View Details
-              <ArrowRight size={16} className="ml-1" />
-            </Link>
-          )}
+          <Button 
+            variant="ghost" 
+            className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
+            onClick={handleViewDetails}
+          >
+            View Details
+            <ArrowRight size={16} />
+          </Button>
         </CardFooter>
       </Card>
     </motion.div>

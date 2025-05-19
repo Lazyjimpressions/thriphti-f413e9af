@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react"; 
+import { useState } from "react"; 
 import { 
   Carousel, 
   CarouselContent, 
@@ -12,6 +12,7 @@ import { getFeaturedEvents } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 export default function FeaturedEventsCarousel() {
   const navigate = useNavigate();
@@ -26,8 +27,14 @@ export default function FeaturedEventsCarousel() {
     if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      // If no source_url, we could navigate to a detail page if it exists
-      console.log("Event selected:", event.title);
+      // Give feedback when there's no source URL
+      toast({
+        title: "No external link available",
+        description: "This event doesn't have a details page yet.",
+        variant: "default"
+      });
+      
+      console.log("Event selected but no source_url:", event.title);
     }
   };
 

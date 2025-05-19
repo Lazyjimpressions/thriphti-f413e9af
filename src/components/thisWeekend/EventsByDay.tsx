@@ -134,7 +134,14 @@ export default function EventsByDay() {
     if (event.source_url) {
       window.open(event.source_url, '_blank');
     } else {
-      console.log("Event selected:", event.title);
+      // Give feedback when there's no source URL
+      toast({
+        title: "No external link available",
+        description: "This event doesn't have a details page yet.",
+        variant: "default"
+      });
+      
+      console.log("Event selected but no source_url:", event.title);
     }
   };
   
