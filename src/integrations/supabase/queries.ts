@@ -183,7 +183,12 @@ export async function getStoreReviews(storeId: string): Promise<(StoreReview & {
  * @throws Error if the query fails
  */
 export async function getFeaturedEvents() {
-  const { data, error } = await supabase.rpc('get_featured_events');
+  // Using the function method instead of rpc to avoid TypeScript issues
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('featured', true)
+    .order('event_date', { ascending: true });
   
   if (error) throw new Error(`Failed to fetch featured events: ${error.message}`);
   return data || [];
@@ -197,13 +202,22 @@ export async function getFeaturedEvents() {
  * @throws Error if the query fails
  */
 export async function getEventsByDay(startDate: string, endDate: string) {
-  const { data, error } = await supabase.rpc('get_events_by_day', {
-    start_date: startDate,
-    end_date: endDate
-  });
+  // We'll need to manually add the day_of_week field since we can't use the RPC function
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .gte('event_date', startDate)
+    .lte('event_date', endDate)
+    .order('event_date', { ascending: true })
+    .order('start_time', { ascending: true });
   
   if (error) throw new Error(`Failed to fetch events by day: ${error.message}`);
-  return data || [];
+  
+  // Format the data to include day_of_week
+  return data?.map(event => ({
+    ...event,
+    day_of_week: new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'long' })
+  })) || [];
 }
 
 /**
@@ -225,13 +239,35 @@ export async function filterEvents({
   searchQuery?: string | null;
   date?: string | null;
 }) {
-  const { data, error } = await supabase.rpc('filter_events', {
-    filter_categories: categories,
-    filter_neighborhoods: neighborhoods,
-    filter_price_ranges: priceRanges,
-    search_query: searchQuery,
-    filter_date: date
-  });
+  let query = supabase
+    .from('events')
+    .select('*');
+  
+  // Apply filters
+  if (categories && categories.length > 0) {
+    query = query.in('category', categories);
+  }
+  
+  if (neighborhoods && neighborhoods.length > 0) {
+    query = query.in('neighborhood', neighborhoods);
+  }
+  
+  if (priceRanges && priceRanges.length > 0) {
+    query = query.in('price_range', priceRanges);
+  }
+  
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,venue.ilike.%${searchQuery}%`);
+  }
+  
+  if (date) {
+    query = query.eq('event_date', date);
+  }
+  
+  // Order by date and featured status
+  query = query.order('event_date', { ascending: true }).order('featured', { ascending: false });
+  
+  const { data, error } = await query;
   
   if (error) throw new Error(`Failed to filter events: ${error.message}`);
   return data || [];
