@@ -56,14 +56,16 @@ export default function FeaturedEventsCarousel() {
       <CarouselContent className="-ml-4">
         {featuredEvents.map((event, index) => (
           <CarouselItem key={event.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-            <EventCard
-              title={event.title}
-              image={event.image}
-              date={event.date}
-              location={event.location}
-              tag={event.tag}
-              index={index}
-            />
+            <div className="h-full">
+              <EventCard
+                title={event.title}
+                image={event.image}
+                date={event.date}
+                location={event.location}
+                tag={event.tag}
+                index={index}
+              />
+            </div>
           </CarouselItem>
         ))}
       </CarouselContent>
