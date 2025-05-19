@@ -47,7 +47,7 @@ export default function FeaturedEventsCarousel() {
       className="w-full"
     >
       <CarouselContent className="-ml-4">
-        {featuredEvents.map((event, index) => (
+        {(featuredEvents as Event[]).map((event, index) => (
           <CarouselItem key={event.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
             <div className="h-full">
               <EventCard

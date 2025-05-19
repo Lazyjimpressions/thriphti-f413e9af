@@ -49,18 +49,18 @@ export default function EventsByDay() {
 
   // Group events by day
   const eventsByDay = {
-    friday: events?.filter(event => {
+    friday: events ? (events as Event[]).filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.friday;
-    }) || [],
-    saturday: events?.filter(event => {
+    }) : [],
+    saturday: events ? (events as Event[]).filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.saturday;
-    }) || [],
-    sunday: events?.filter(event => {
+    }) : [],
+    sunday: events ? (events as Event[]).filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.sunday;
-    }) || []
+    }) : []
   };
   
   // Format dates for "Add to Calendar" functionality
