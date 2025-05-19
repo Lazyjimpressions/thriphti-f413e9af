@@ -23,8 +23,10 @@ interface Profile {
   id: string;
   email: string | null;
   full_name: string | null;
-  avatar_url: string | null;
-  updated_at: string;
+  avatar_url?: string | null;
+  updated_at?: string;
+  role?: string | null;
+  created_at?: string | null;
 }
 
 const profileSchema = z.object({
@@ -59,7 +61,20 @@ export default function Profile() {
         if (error) throw error;
         
         if (data) {
-          setProfile(data);
+          // Update the profile state with the database data
+          // Adding possible missing fields with default values
+          const profileData: Profile = {
+            id: data.id,
+            email: data.email,
+            full_name: data.full_name,
+            role: data.role,
+            created_at: data.created_at,
+            avatar_url: data.avatar_url || '',
+            updated_at: new Date().toISOString(),
+          };
+          
+          setProfile(profileData);
+          
           form.reset({
             full_name: data.full_name || '',
             avatar_url: data.avatar_url || ''
@@ -78,7 +93,7 @@ export default function Profile() {
     }
     
     loadProfile();
-  }, [user]);
+  }, [user, form]);
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     if (!user) return;
@@ -99,10 +114,12 @@ export default function Profile() {
 
       if (error) throw error;
       
-      setProfile({
-        ...profile!,
-        ...updates
-      });
+      if (profile) {
+        setProfile({
+          ...profile,
+          ...updates
+        });
+      }
       
       toast({
         title: "Profile updated",
