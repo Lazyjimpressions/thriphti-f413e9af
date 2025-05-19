@@ -243,11 +243,17 @@ export async function getEventsByDay(startDate: string, endDate: string): Promis
       throw new Error(`Failed to fetch events by day: ${error.message}`);
     }
     
+    // Debug the raw event data
+    console.log("Raw events from database:", data);
+    
     // Format the data to include day_of_week
-    const eventsWithDayOfWeek = data?.map(event => ({
-      ...event,
-      day_of_week: new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'long' })
-    })) || [];
+    const eventsWithDayOfWeek = data?.map(event => {
+      const date = new Date(event.event_date);
+      return {
+        ...event,
+        day_of_week: date.toLocaleDateString('en-US', { weekday: 'long' })
+      };
+    }) || [];
     
     console.log("Events by day fetched:", eventsWithDayOfWeek);
     return eventsWithDayOfWeek as Event[];

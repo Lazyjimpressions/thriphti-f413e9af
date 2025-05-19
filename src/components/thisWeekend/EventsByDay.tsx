@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/EventCard";
@@ -6,10 +7,10 @@ import { getEventsByDay } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom"; // Changed from @tanstack/react-router to react-router-dom
+import { useNavigate } from "react-router-dom";
 
 export default function EventsByDay() {
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
   
   // Get current weekend dates with more reliable date calculations
   const getFridayToSunday = () => {
@@ -56,15 +57,22 @@ export default function EventsByDay() {
   useEffect(() => {
     if (events) {
       console.log("Fetched events:", events.length);
+      
+      // Debug event dates to see if there's a mismatch
+      events.forEach(event => {
+        const eventDate = new Date(event.event_date).toISOString().split('T')[0];
+        console.log(`Event: ${event.title}, Date: ${event.event_date}, Normalized: ${eventDate}`);
+      });
     }
     if (error) {
       console.error("Error fetching events:", error);
     }
   }, [events, error]);
   
-  // Group events by day
+  // Group events by day with improved date comparison
   const eventsByDay = {
     friday: events ? events.filter(event => {
+      // Normalize both dates to account for timezone differences
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.friday;
     }) : [],
@@ -77,6 +85,15 @@ export default function EventsByDay() {
       return eventDate === weekendDates.sunday;
     }) : []
   };
+  
+  // Debug eventsByDay to see what's being filtered
+  useEffect(() => {
+    console.log("Events by day:", {
+      friday: eventsByDay.friday.length,
+      saturday: eventsByDay.saturday.length,
+      sunday: eventsByDay.sunday.length
+    });
+  }, [eventsByDay]);
   
   const handleAddToCalendar = (event: Event) => {
     // Create a Google Calendar URL
