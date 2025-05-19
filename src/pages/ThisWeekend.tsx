@@ -6,48 +6,86 @@ import Layout from "@/components/layout/Layout";
 import ThisWeekendHero from "@/components/thisWeekend/ThisWeekendHero";
 import FeaturedEventsCarousel from "@/components/thisWeekend/FeaturedEventsCarousel";
 import EventsByDay from "@/components/thisWeekend/EventsByDay";
-import { CalendarRange, MapPin, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { CalendarRange, MapPin, Filter as FilterIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailCta from "@/components/EmailCta";
 import ThisWeekendFilter from "@/components/thisWeekend/ThisWeekendFilter";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose
+} from "@/components/ui/sheet";
 
 export default function ThisWeekend() {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>(["Vintage", "North Dallas"]);
   
   return (
     <Layout>
       <ThisWeekendHero />
       
       <div className="container mx-auto px-4 pt-8 pb-16">
-        {/* Filter Section - Now with improved layout */}
+        {/* Filter Section - New implementation with Sheet */}
         <motion.div
           variants={fadeInUpVariants}
           initial="hidden"
           animate="visible"
           className="mb-12"
         >
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
             <h2 className="font-serif text-3xl text-thriphti-green">
               Find Events
             </h2>
             
-            <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="w-full max-w-[180px]">
-              <CollapsibleTrigger 
-                className="flex items-center gap-1 text-thriphti-green hover:text-thriphti-green/80 py-1 px-3 border border-thriphti-green/30 rounded-md"
-              >
-                <Filter size={16} className="mr-1" />
-                {isFilterOpen ? (
-                  <>Hide Filters <ChevronUp size={16} /></>
-                ) : (
-                  <>Show Filters <ChevronDown size={16} /></>
-                )}
-              </CollapsibleTrigger>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Active filters display */}
+              {activeFilters.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mr-2">
+                  {activeFilters.map(filter => (
+                    <Badge 
+                      key={filter}
+                      variant="outline" 
+                      className="bg-white border-thriphti-green/30 text-thriphti-green flex items-center gap-1 py-1 pl-3 pr-2"
+                    >
+                      {filter}
+                      <button 
+                        className="ml-1 hover:bg-thriphti-green/10 rounded-full p-0.5"
+                        onClick={() => setActiveFilters(prev => prev.filter(f => f !== filter))}
+                        aria-label={`Remove ${filter} filter`}
+                      >
+                        <span className="sr-only">Remove</span>×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
               
-              <CollapsibleContent className="mt-6">
-                <ThisWeekendFilter />
-              </CollapsibleContent>
-            </Collapsible>
+              {/* Filter button with Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-1 text-thriphti-green hover:text-thriphti-green/80 border-thriphti-green/30 hover:bg-thriphti-green/5"
+                  >
+                    <FilterIcon size={16} className="mr-1" />
+                    Filters
+                    {activeFilters.length > 0 && (
+                      <Badge className="ml-1 bg-thriphti-green text-white h-5 min-w-5 flex items-center justify-center rounded-full p-0">
+                        {activeFilters.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto">
+                  <ThisWeekendFilter 
+                    activeFilters={activeFilters} 
+                    setActiveFilters={setActiveFilters} 
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </motion.div>
         

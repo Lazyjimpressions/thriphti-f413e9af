@@ -33,11 +33,12 @@ export default function EventCard({ title, image, date, location, tag, index = 0
       className="h-full"
     >
       <Card className="overflow-hidden h-full flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
-        <div className="relative aspect-[4/3]">
+        <div className="relative w-full h-0 pb-[75%] overflow-hidden">
           <img 
             src={image} 
             alt={title} 
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
           />
           <div className="absolute top-4 left-4">
             <span className="bg-thriphti-rust text-white text-xs font-medium px-3 py-1 rounded-sm uppercase">
@@ -50,11 +51,11 @@ export default function EventCard({ title, image, date, location, tag, index = 0
         </CardHeader>
         <CardContent className="pb-2 text-sm space-y-2 flex-grow">
           <div className="flex items-center gap-2">
-            <MapPin size={16} className="text-thriphti-rust" />
+            <MapPin size={16} className="text-thriphti-rust flex-shrink-0" />
             <span className="text-gray-600 line-clamp-1">{location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar size={16} className="text-thriphti-rust" />
+            <Calendar size={16} className="text-thriphti-rust flex-shrink-0" />
             <span className="text-gray-600">{date}</span>
           </div>
         </CardContent>

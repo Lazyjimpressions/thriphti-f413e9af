@@ -4,13 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/EventCard";
 import { Calendar, Share } from "lucide-react";
 
-// Sample events data organized by day
+// Sample events data organized by day with improved image URLs
 const eventsByDay = {
   friday: [
     {
       id: 1,
       title: "Friday Night Thrift Walk",
-      image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 17",
       location: "Deep Ellum",
       tag: "NIGHT MARKET",
@@ -18,7 +18,7 @@ const eventsByDay = {
     {
       id: 2,
       title: "Genesis Benefit Store Flash Sale",
-      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 17",
       location: "North Dallas",
       tag: "FLASH SALE",
@@ -28,7 +28,7 @@ const eventsByDay = {
     {
       id: 3,
       title: "White Rock Vintage Market",
-      image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 18",
       location: "East Dallas",
       tag: "VINTAGE MARKET",
@@ -36,7 +36,7 @@ const eventsByDay = {
     {
       id: 4,
       title: "Community Garage Sale",
-      image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 18",
       location: "Plano",
       tag: "GARAGE SALE",
@@ -44,7 +44,7 @@ const eventsByDay = {
     {
       id: 5,
       title: "Urban Flea Dallas",
-      image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 18",
       location: "Design District",
       tag: "FLEA MARKET",
@@ -54,7 +54,7 @@ const eventsByDay = {
     {
       id: 6,
       title: "Bishop Arts District Sale",
-      image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 19",
       location: "Bishop Arts",
       tag: "STREET SALE",
@@ -62,7 +62,7 @@ const eventsByDay = {
     {
       id: 7,
       title: "Vintage Clothing Pop Up",
-      image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600",
       date: "May 19",
       location: "Dallas",
       tag: "VINTAGE",
