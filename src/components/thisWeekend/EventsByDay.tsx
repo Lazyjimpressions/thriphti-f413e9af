@@ -6,17 +6,21 @@ import { Calendar, Share } from "lucide-react";
 import { getEventsByDay } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
 
 export default function EventsByDay() {
-  // Get current weekend dates
+  // Get current weekend dates with more reliable date calculations
   const getFridayToSunday = () => {
     const now = new Date();
     const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
     
     // Calculate days to Friday (5), Saturday (6), and Sunday (0)
-    const daysToFriday = currentDay <= 5 ? 5 - currentDay : (5 + 7) - currentDay;
-    const friday = new Date(now);
+    let daysToFriday = 5 - currentDay;
+    if (daysToFriday < 0) daysToFriday += 7; // If we're past Friday, get next week's Friday
+    
+    const friday = new Date();
     friday.setDate(now.getDate() + daysToFriday);
+    friday.setHours(0, 0, 0, 0);
     
     const saturday = new Date(friday);
     saturday.setDate(friday.getDate() + 1);
@@ -32,6 +36,7 @@ export default function EventsByDay() {
   };
 
   const weekendDates = getFridayToSunday();
+  console.log("Weekend dates:", weekendDates);
   
   // Get current day to set default tab
   const today = new Date().getDay();
@@ -39,7 +44,6 @@ export default function EventsByDay() {
   if (today === 5) defaultDay = 'friday';
   if (today === 0) defaultDay = 'sunday';
   
-  // For demo purposes - would be tied to real state management
   const [day, setDay] = useState(defaultDay);
   
   const { data: events, isLoading, error } = useQuery({
@@ -47,6 +51,15 @@ export default function EventsByDay() {
     queryFn: () => getEventsByDay(weekendDates.friday, weekendDates.sunday),
   });
 
+  useEffect(() => {
+    if (events) {
+      console.log("Fetched events:", events.length);
+    }
+    if (error) {
+      console.error("Error fetching events:", error);
+    }
+  }, [events, error]);
+  
   // Group events by day
   const eventsByDay = {
     friday: events ? events.filter(event => {
@@ -63,31 +76,65 @@ export default function EventsByDay() {
     }) : []
   };
   
-  // Format dates for "Add to Calendar" functionality
-  const getEventDate = (date: string) => {
-    const year = new Date().getFullYear();
-    const month = new Date().getMonth() + 1;
-    const day = parseInt(date.split(" ")[1]);
-    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-  };
-  
   const handleAddToCalendar = (event: Event) => {
-    // In a real implementation, this would integrate with calendar APIs
-    console.log(`Added to calendar: ${event.title} on ${event.event_date}`);
-    alert(`Event added to calendar: ${event.title}`);
+    // Create a Google Calendar URL
+    const startDate = new Date(event.event_date);
+    if (event.start_time) {
+      const [hours, minutes] = event.start_time.split(':');
+      startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    
+    const endDate = new Date(startDate);
+    if (event.end_time) {
+      const [hours, minutes] = event.end_time.split(':');
+      endDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    } else {
+      endDate.setHours(startDate.getHours() + 2); // Default 2 hour duration
+    }
+    
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startDate.toISOString().replace(/-|:|\.\d+/g, '')}/${endDate.toISOString().replace(/-|:|\.\d+/g, '')}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.venue ? `${event.venue}, ${event.location}` : event.location)}`;
+    
+    window.open(googleCalendarUrl, '_blank');
+    toast({
+      title: "Event Added to Calendar",
+      description: `${event.title} has been added to your calendar.`
+    });
   };
   
   const handleShareEvent = (event: Event) => {
-    // In a real implementation, this would use the Web Share API
     if (navigator.share) {
       navigator.share({
         title: event.title,
         text: `Check out this event: ${event.title} in ${event.location}`,
-        url: window.location.href,
+        url: event.source_url || window.location.href,
       }).catch(console.error);
     } else {
-      console.log(`Shared event: ${event.title}`);
-      alert(`Event link copied to clipboard!`);
+      // Fallback for browsers that don't support Web Share API
+      const shareText = `${event.title} - ${event.location}${event.source_url ? ` - ${event.source_url}` : ''}`;
+      
+      try {
+        navigator.clipboard.writeText(shareText);
+        toast({
+          title: "Link Copied",
+          description: "Event details copied to clipboard!"
+        });
+      } catch (err) {
+        console.error("Clipboard write failed:", err);
+        toast({
+          title: "Share Failed",
+          description: "Unable to copy to clipboard",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+  
+  // Handle event selection
+  const handleSelectEvent = (event: Event) => {
+    if (event.source_url) {
+      window.open(event.source_url, '_blank');
+    } else {
+      console.log("Event selected:", event.title);
     }
   };
   
@@ -110,6 +157,7 @@ export default function EventsByDay() {
     return (
       <div className="w-full text-center py-12 text-gray-500">
         <p>Unable to load events. Please try again later.</p>
+        <p className="text-sm mt-2 text-gray-400">Error: {(error as Error).message}</p>
       </div>
     );
   }
@@ -130,6 +178,7 @@ export default function EventsByDay() {
                 <EventCard
                   event={event}
                   index={index}
+                  onSelect={handleSelectEvent}
                 />
                 
                 {/* Action buttons for each event */}

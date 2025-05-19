@@ -217,6 +217,19 @@ export async function getEventsByDay(startDate: string, endDate: string): Promis
   console.log(`Fetching events from ${startDate} to ${endDate}`);
   
   try {
+    // For debugging
+    const currentDateTime = new Date().toISOString();
+    console.log(`Current date/time: ${currentDateTime}`);
+    
+    // First, try to get all events to see what we have in the database
+    const allEventsResult = await supabase
+      .from('events')
+      .select('id, event_date')
+      .limit(10);
+    
+    console.log("Sample events in database:", allEventsResult.data);
+    
+    // Now fetch the events for the specified date range
     const { data, error } = await supabase
       .from('events')
       .select('*')
@@ -236,7 +249,7 @@ export async function getEventsByDay(startDate: string, endDate: string): Promis
       day_of_week: new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'long' })
     })) || [];
     
-    console.log("Events by day fetched successfully:", eventsWithDayOfWeek.length);
+    console.log("Events by day fetched:", eventsWithDayOfWeek);
     return eventsWithDayOfWeek as Event[];
   } catch (e: any) {
     console.error("Exception in getEventsByDay:", e);

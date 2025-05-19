@@ -4,12 +4,23 @@ import { motion } from "framer-motion";
 import { staggerContainerVariants } from "@/lib/motion";
 import { useQuery } from "@tanstack/react-query";
 import { getFeaturedEvents } from "@/integrations/supabase/queries";
+import { Event } from "@/types/event";
 
 export default function EventGrid() {
   const { data: events, isLoading, error } = useQuery({
     queryKey: ['todaysEvents'],
     queryFn: getFeaturedEvents,
   });
+
+  // Handle event selection
+  const handleSelectEvent = (event: Event) => {
+    if (event.source_url) {
+      window.open(event.source_url, '_blank');
+    } else {
+      // If no source_url, we could navigate to a detail page if it exists
+      console.log("Event selected:", event.title);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,6 +75,7 @@ export default function EventGrid() {
             key={event.id}
             event={event}
             index={index}
+            onSelect={handleSelectEvent}
           />
         ))}
       </motion.div>

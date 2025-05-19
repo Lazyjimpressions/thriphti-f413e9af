@@ -11,12 +11,25 @@ import EventCard from "@/components/EventCard";
 import { getFeaturedEvents } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export default function FeaturedEventsCarousel() {
+  const navigate = useNavigate();
+  
   const { data: featuredEvents, isLoading, error } = useQuery({
     queryKey: ['featuredEvents'],
     queryFn: getFeaturedEvents,
   });
+
+  // Handle event selection
+  const handleSelectEvent = (event: Event) => {
+    if (event.source_url) {
+      window.open(event.source_url, '_blank');
+    } else {
+      // If no source_url, we could navigate to a detail page if it exists
+      console.log("Event selected:", event.title);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -52,7 +65,7 @@ export default function FeaturedEventsCarousel() {
             <div className="h-full">
               <EventCard
                 event={event}
-                onSelect={() => {}}
+                onSelect={handleSelectEvent}
               />
             </div>
           </CarouselItem>
