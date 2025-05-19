@@ -2,7 +2,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getEventById } from "@/integrations/supabase/queries";
+import { getEventById, filterEvents } from "@/integrations/supabase/queries"; // Added filterEvents import
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Share, ArrowLeft, ExternalLink } from "lucide-react";
