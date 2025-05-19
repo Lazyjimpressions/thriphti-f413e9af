@@ -15,10 +15,16 @@ export default function Guides() {
   const isMobile = useIsMobile();
   
   // Fetch all articles
-  const { data: articles = [], isLoading, error } = useQuery({
+  const { data: articlesRaw = [], isLoading, error } = useQuery({
     queryKey: ['articles'],
     queryFn: getAllArticles,
   });
+  
+  // Map the database response to match our Article interface
+  const articles = articlesRaw.map((article: any): Article => ({
+    ...article,
+    publishedAt: article.publishedat, // Map publishedat to publishedAt
+  }));
   
   // Filter to only show guides
   const guideArticles = articles.filter(
