@@ -49,15 +49,15 @@ export default function EventsByDay() {
 
   // Group events by day
   const eventsByDay = {
-    friday: events ? (events as Event[]).filter(event => {
+    friday: events ? events.filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.friday;
     }) : [],
-    saturday: events ? (events as Event[]).filter(event => {
+    saturday: events ? events.filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.saturday;
     }) : [],
-    sunday: events ? (events as Event[]).filter(event => {
+    sunday: events ? events.filter(event => {
       const eventDate = new Date(event.event_date).toISOString().split('T')[0];
       return eventDate === weekendDates.sunday;
     }) : []
@@ -71,13 +71,13 @@ export default function EventsByDay() {
     return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
   };
   
-  const handleAddToCalendar = (event: any) => {
+  const handleAddToCalendar = (event: Event) => {
     // In a real implementation, this would integrate with calendar APIs
     console.log(`Added to calendar: ${event.title} on ${event.event_date}`);
     alert(`Event added to calendar: ${event.title}`);
   };
   
-  const handleShareEvent = (event: any) => {
+  const handleShareEvent = (event: Event) => {
     // In a real implementation, this would use the Web Share API
     if (navigator.share) {
       navigator.share({

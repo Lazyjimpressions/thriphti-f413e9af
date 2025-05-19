@@ -1,6 +1,6 @@
-
 import { supabase } from './client';
 import type { Database } from '@/types/supabase';
+import { Event } from '@/types/event';
 
 // Type aliases for better readability
 type Store = Database['public']['Tables']['stores']['Row'];
@@ -8,6 +8,7 @@ type StoreInsert = Database['public']['Tables']['stores']['Insert'];
 type StoreReview = Database['public']['Tables']['store_reviews']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Article = Database['public']['Tables']['articles']['Row'];
+type DbEvent = Database['public']['Tables']['events']['Row'];
 
 /**
  * Fetches all approved stores
@@ -182,16 +183,27 @@ export async function getStoreReviews(storeId: string): Promise<(StoreReview & {
  * @returns Promise<Event[]> Array of featured events
  * @throws Error if the query fails
  */
-export async function getFeaturedEvents() {
-  // Using the function method instead of rpc to avoid TypeScript issues
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('featured', true)
-    .order('event_date', { ascending: true });
+export async function getFeaturedEvents(): Promise<Event[]> {
+  console.log("Fetching featured events from Supabase");
   
-  if (error) throw new Error(`Failed to fetch featured events: ${error.message}`);
-  return data || [];
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('featured', true)
+      .order('event_date', { ascending: true });
+    
+    if (error) {
+      console.error("Supabase error details:", error);
+      throw new Error(`Failed to fetch featured events: ${error.message}`);
+    }
+    
+    console.log("Featured events fetched successfully:", data?.length || 0);
+    return data as Event[] || [];
+  } catch (e: any) {
+    console.error("Exception in getFeaturedEvents:", e);
+    throw new Error(`Failed to fetch featured events: ${e.message}`);
+  }
 }
 
 /**
@@ -201,23 +213,35 @@ export async function getFeaturedEvents() {
  * @returns Promise<Event[]> Array of events with day of week
  * @throws Error if the query fails
  */
-export async function getEventsByDay(startDate: string, endDate: string) {
-  // We'll need to manually add the day_of_week field since we can't use the RPC function
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .gte('event_date', startDate)
-    .lte('event_date', endDate)
-    .order('event_date', { ascending: true })
-    .order('start_time', { ascending: true });
+export async function getEventsByDay(startDate: string, endDate: string): Promise<Event[]> {
+  console.log(`Fetching events from ${startDate} to ${endDate}`);
   
-  if (error) throw new Error(`Failed to fetch events by day: ${error.message}`);
-  
-  // Format the data to include day_of_week
-  return data?.map(event => ({
-    ...event,
-    day_of_week: new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'long' })
-  })) || [];
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .gte('event_date', startDate)
+      .lte('event_date', endDate)
+      .order('event_date', { ascending: true })
+      .order('start_time', { ascending: true });
+    
+    if (error) {
+      console.error("Supabase error details:", error);
+      throw new Error(`Failed to fetch events by day: ${error.message}`);
+    }
+    
+    // Format the data to include day_of_week
+    const eventsWithDayOfWeek = data?.map(event => ({
+      ...event,
+      day_of_week: new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'long' })
+    })) || [];
+    
+    console.log("Events by day fetched successfully:", eventsWithDayOfWeek.length);
+    return eventsWithDayOfWeek as Event[];
+  } catch (e: any) {
+    console.error("Exception in getEventsByDay:", e);
+    throw new Error(`Failed to fetch events by day: ${e.message}`);
+  }
 }
 
 /**
@@ -238,37 +262,37 @@ export async function filterEvents({
   priceRanges?: string[] | null;
   searchQuery?: string | null;
   date?: string | null;
-}) {
-  let query = supabase
+}): Promise<Event[]> {
+  let queryBuilder = supabase
     .from('events')
     .select('*');
   
   // Apply filters
   if (categories && categories.length > 0) {
-    query = query.in('category', categories);
+    queryBuilder = queryBuilder.in('category', categories);
   }
   
   if (neighborhoods && neighborhoods.length > 0) {
-    query = query.in('neighborhood', neighborhoods);
+    queryBuilder = queryBuilder.in('neighborhood', neighborhoods);
   }
   
   if (priceRanges && priceRanges.length > 0) {
-    query = query.in('price_range', priceRanges);
+    queryBuilder = queryBuilder.in('price_range', priceRanges);
   }
   
   if (searchQuery) {
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,venue.ilike.%${searchQuery}%`);
+    queryBuilder = queryBuilder.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,venue.ilike.%${searchQuery}%`);
   }
   
   if (date) {
-    query = query.eq('event_date', date);
+    queryBuilder = queryBuilder.eq('event_date', date);
   }
   
   // Order by date and featured status
-  query = query.order('event_date', { ascending: true }).order('featured', { ascending: false });
+  queryBuilder = queryBuilder.order('event_date', { ascending: true }).order('featured', { ascending: false });
   
-  const { data, error } = await query;
+  const { data, error } = await queryBuilder;
   
   if (error) throw new Error(`Failed to filter events: ${error.message}`);
-  return data || [];
+  return data as Event[] || [];
 }

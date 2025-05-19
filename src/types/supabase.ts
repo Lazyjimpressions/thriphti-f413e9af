@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -20,7 +21,7 @@ export type Database = {
           image: string | null
           publishedat: string
           slug: string
-          source_url: string | null  // Added source_url field
+          source_url: string | null
           tags: string[] | null
           title: string
         }
@@ -34,7 +35,7 @@ export type Database = {
           image?: string | null
           publishedat?: string
           slug: string
-          source_url?: string | null  // Added source_url field
+          source_url?: string | null
           tags?: string[] | null
           title: string
         }
@@ -48,9 +49,63 @@ export type Database = {
           image?: string | null
           publishedat?: string
           slug?: string
-          source_url?: string | null  // Added source_url field
+          source_url?: string | null
           tags?: string[] | null
           title?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          event_date: string
+          start_time: string | null
+          end_time: string | null
+          location: string
+          venue: string | null
+          image_url: string | null
+          category: string
+          neighborhood: string | null
+          price_range: string | null
+          featured: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          event_date: string
+          start_time?: string | null
+          end_time?: string | null
+          location: string
+          venue?: string | null
+          image_url?: string | null
+          category: string
+          neighborhood?: string | null
+          price_range?: string | null
+          featured?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          event_date?: string
+          start_time?: string | null
+          end_time?: string | null
+          location?: string
+          venue?: string | null
+          image_url?: string | null
+          category?: string
+          neighborhood?: string | null
+          price_range?: string | null
+          featured?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
