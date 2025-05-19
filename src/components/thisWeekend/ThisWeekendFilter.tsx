@@ -47,11 +47,13 @@ export default function ThisWeekendFilter({ activeFilters, setActiveFilters }: T
   
   // Handler functions for filter actions
   const toggleFilter = (filter: string) => {
-    setActiveFilters(prev => 
-      prev.includes(filter) 
-        ? prev.filter(f => f !== filter)
-        : [...prev, filter]
-    );
+    // Create a new array based on current state instead of using a function
+    const updatedFilters = activeFilters.includes(filter) 
+      ? activeFilters.filter(f => f !== filter)
+      : [...activeFilters, filter];
+    
+    // Set the new array directly
+    setActiveFilters(updatedFilters);
   };
   
   const clearAllFilters = () => {
