@@ -5,7 +5,6 @@ import { getAllArticles } from "@/integrations/supabase/queries";
 import type { Database } from '@/types/supabase';
 import type { Article } from "@/types/article";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 // Type alias for article from Supabase
 type SupabaseArticle = Database['public']['Tables']['articles']['Row'];

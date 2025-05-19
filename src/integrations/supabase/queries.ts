@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import type { Database } from '@/types/supabase';
 import { Event } from '@/types/event';
@@ -474,9 +475,14 @@ export async function getUserRoles(userId: string): Promise<UserRole[]> {
  * @throws Error if the operation fails
  */
 export async function hasRole(userId: string, role: Database['public']['Enums']['app_role']): Promise<boolean> {
+  // Instead of using RPC, we'll directly query the user_roles table
   const { data, error } = await supabase
-    .rpc('has_role', { _user_id: userId, _role: role });
+    .from('user_roles')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('role', role)
+    .maybeSingle();
   
   if (error) throw new Error(`Failed to check user role: ${error.message}`);
-  return !!data;
+  return data !== null;
 }

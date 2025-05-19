@@ -1,3 +1,4 @@
+
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { motion } from "framer-motion";
@@ -102,7 +103,7 @@ export default function ArticleDetail() {
                   {readingTime}
                 </span>
                 <span>•</span>
-                <span>{article.publishedat ? format(new Date(article.publishedat), 'MMM d, yyyy') : ''}</span>
+                <span>{article.published_at ? format(new Date(article.published_at), 'MMM d, yyyy') : ''}</span>
               </div>
               <h1 className="font-serif text-5xl md:text-6xl text-white mb-6">
                 {article.title}
