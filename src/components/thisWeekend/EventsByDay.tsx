@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/EventCard";
@@ -148,14 +147,10 @@ export default function EventsByDay() {
     }
   };
   
-  // Handle event selection
+  // Handle event selection - always navigate to event detail page
   const handleSelectEvent = (event: Event) => {
-    if (event.source_url) {
-      window.open(event.source_url, '_blank');
-    } else {
-      // Navigate to the event detail page
-      navigate(`/events/${event.id}`);
-    }
+    // Always navigate to the event detail page regardless of source_url
+    navigate(`/events/${event.id}`);
   };
   
   if (isLoading) {

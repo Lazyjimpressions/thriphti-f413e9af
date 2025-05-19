@@ -14,14 +14,10 @@ export default function EventGrid() {
     queryFn: getFeaturedEvents,
   });
 
-  // Handle event selection
+  // Handle event selection - always navigate to event detail page
   const handleSelectEvent = (event: Event) => {
-    if (event.source_url) {
-      window.open(event.source_url, '_blank');
-    } else {
-      // Navigate to the event detail page
-      navigate(`/events/${event.id}`);
-    }
+    // Always navigate to the event detail page
+    navigate(`/events/${event.id}`);
   };
 
   if (isLoading) {

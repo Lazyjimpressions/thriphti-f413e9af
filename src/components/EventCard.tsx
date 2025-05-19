@@ -18,10 +18,8 @@ export default function EventCard({ event, onSelect, index = 0 }: EventCardProps
   const handleViewDetails = () => {
     if (onSelect) {
       onSelect(event);
-    } else if (event.source_url) {
-      window.open(event.source_url, '_blank');
     } else {
-      // Navigate to internal event detail page
+      // Always navigate to internal event detail page
       navigate(`/events/${event.id}`);
     }
   };
