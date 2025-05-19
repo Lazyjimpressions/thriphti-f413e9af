@@ -1,12 +1,21 @@
+
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Calendar, BookOpen, Map, Store, Sparkles } from "lucide-react";
+import { Menu, Calendar, BookOpen, Map, Store, Sparkles, User, LogIn, LogOut, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const NavigationBar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navLinks = [
     { to: "/this-weekend", label: "This Weekend", icon: Calendar },
@@ -46,6 +55,44 @@ const NavigationBar = () => {
           </div>
         )}
 
+        {/* Auth Buttons - Desktop */}
+        {!isMobile && (
+          <div className="ml-auto">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors p-2 rounded-full hover:bg-gray-100">
+                  <User size={20} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled>
+                    <span className="text-sm text-gray-500">Signed in as</span>
+                    <br />
+                    <span className="font-medium truncate max-w-[200px] block">{user.email}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Your Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link 
+                to="/auth" 
+                className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors"
+              >
+                <LogIn size={18} className="group-hover:scale-110 transition-transform" />
+                <span>Sign In</span>
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* Mobile Menu */}
         {isMobile && (
           <Sheet>
@@ -69,6 +116,37 @@ const NavigationBar = () => {
                     <span>{label}</span>
                   </Link>
                 ))}
+                <div className="border-t border-gray-200 my-2"></div>
+                {user ? (
+                  <>
+                    <div className="px-4 py-2">
+                      <p className="text-sm text-gray-500">Signed in as</p>
+                      <p className="font-medium truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <Settings size={20} />
+                      <span>Your Profile</span>
+                    </Link>
+                    <button
+                      onClick={() => signOut()}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors text-red-500"
+                    >
+                      <LogOut size={20} />
+                      <span>Sign out</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <LogIn size={20} />
+                    <span>Sign In</span>
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
