@@ -12,6 +12,7 @@ import Articles from "./pages/Articles";
 import ArticleDetail from "./pages/ArticleDetail";
 import ThisWeekend from "./pages/ThisWeekend";
 import EventDetail from "./pages/EventDetail";
+import Guides from "./pages/Guides";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/articles/:slug" element={<ArticleDetail />} />
             <Route path="/this-weekend" element={<ThisWeekend />} />
             <Route path="/events/:eventId" element={<EventDetail />} />
+            <Route path="/guides" element={<Guides />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

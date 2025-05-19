@@ -54,18 +54,30 @@ export default function ArticleGrid({ filter }: ArticleGridProps) {
     if (filter === "all") {
       return articles;
     }
+    
+    // Log categories for debugging
+    console.log("Current filter:", filter);
+    console.log("Available categories:", [...new Set(articles.map(a => a.category))]);
+    
     return articles.filter((article) => {
       switch (filter) {
         case "guides":
-          return article.category === "Guides";
+          // Use case-insensitive comparison for guides
+          return article.category?.toLowerCase() === "guide" || 
+                 article.tags?.some(tag => tag.toLowerCase() === "guide");
         case "tips":
-          return article.category === "Tips & Tricks";
+          return article.category?.toLowerCase() === "tips & tricks" || 
+                 article.category?.toLowerCase() === "tips";
         case "stores":
-          return article.category === "Store Features";
+          return article.category?.toLowerCase() === "store features" ||
+                 article.category?.toLowerCase() === "store feature";
         case "neighborhoods":
-          return article.category === "Neighborhood Spotlights";
+          return article.category?.toLowerCase() === "neighborhood spotlights" ||
+                 article.category?.toLowerCase() === "neighborhood spotlight";
         case "events":
-          return article.category === "Events & Markets";
+          return article.category?.toLowerCase() === "events & markets" || 
+                 article.category?.toLowerCase() === "events" ||
+                 article.category?.toLowerCase() === "event";
         default:
           return true;
       }
