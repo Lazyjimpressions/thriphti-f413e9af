@@ -24,8 +24,8 @@ interface Profile {
   id: string;
   email: string | null;
   full_name: string | null;
-  avatar_url?: string | null;
-  updated_at?: string;
+  avatar_url: string | null;
+  updated_at: string | null;
   role?: string | null;
   created_at?: string | null;
 }
@@ -63,14 +63,14 @@ export default function Profile() {
         
         if (data) {
           // Update the profile state with the database data
-          // Adding possible missing fields with default values
+          // Ensure all required fields are present
           const profileData: Profile = {
             id: data.id,
             email: data.email,
             full_name: data.full_name,
-            role: data.role,
-            created_at: data.created_at,
-            avatar_url: data.avatar_url || '',
+            role: data.role || null,
+            created_at: data.created_at || null,
+            avatar_url: data.avatar_url || null,
             updated_at: new Date().toISOString(),
           };
           
