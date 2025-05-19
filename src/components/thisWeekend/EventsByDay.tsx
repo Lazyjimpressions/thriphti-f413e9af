@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventCard from "@/components/EventCard";
@@ -10,6 +9,8 @@ import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom"; // Changed from @tanstack/react-router to react-router-dom
 
 export default function EventsByDay() {
+  const navigate = useNavigate(); // Initialize the navigate function
+  
   // Get current weekend dates with more reliable date calculations
   const getFridayToSunday = () => {
     const now = new Date();
