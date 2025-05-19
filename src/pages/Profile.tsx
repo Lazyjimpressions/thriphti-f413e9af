@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface Profile {
   id: string;
@@ -161,13 +162,15 @@ export default function Profile() {
             <CardDescription>View and update your profile details</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-4">
+            <Avatar className="w-32 h-32 mb-4">
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                <AvatarImage src={profile.avatar_url} alt="Profile" />
               ) : (
-                <span className="text-5xl text-gray-400">{profile?.full_name?.[0] || user?.email?.[0] || '?'}</span>
+                <AvatarFallback className="text-5xl text-gray-400">
+                  {profile?.full_name?.[0] || user?.email?.[0] || '?'}
+                </AvatarFallback>
               )}
-            </div>
+            </Avatar>
             <div className="text-center">
               <h3 className="text-xl font-medium">{profile?.full_name || 'User'}</h3>
               <p className="text-gray-500">{user?.email}</p>
