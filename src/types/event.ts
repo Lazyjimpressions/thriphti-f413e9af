@@ -1,13 +1,20 @@
+
 export interface Event {
   id: string;
   title: string;
   description: string;
-  date: Date;
+  event_date: Date;
+  start_time?: string;
+  end_time?: string;
   location: string;
-  imageUrl?: string;
-  price?: string;
-  category: 'garage-sale' | 'flea-market' | 'pop-up' | 'consignment';
+  venue?: string;
+  image_url?: string;
+  category: string;
+  neighborhood?: string;
+  price_range?: string;
   featured?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface EventCardProps {

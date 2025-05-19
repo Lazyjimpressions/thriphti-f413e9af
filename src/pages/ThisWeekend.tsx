@@ -18,13 +18,41 @@ import {
   SheetTrigger,
   SheetClose
 } from "@/components/ui/sheet";
+import { filterEvents } from "@/integrations/supabase/queries";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ThisWeekend() {
   const [activeFilters, setActiveFilters] = useState<string[]>(["Vintage", "North Dallas"]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Use React Query to fetch filtered events
+  const { data: filteredEvents } = useQuery({
+    queryKey: ['filteredEvents', activeFilters, searchQuery, selectedDate],
+    queryFn: () => filterEvents({
+      categories: activeFilters.filter(f => ["Garage Sale", "Flea Market", "Vintage", "Consignment Sale", "Pop-Up", "Estate Sale"].includes(f)),
+      neighborhoods: activeFilters.filter(f => ["North Dallas", "Downtown", "Deep Ellum", "Bishop Arts", "Oak Cliff", "Uptown", "Design District"].includes(f)),
+      priceRanges: activeFilters.filter(f => ["Free Entry", "$1-5 Entry", "$5-10 Entry", "$10+ Entry"].includes(f)),
+      searchQuery: searchQuery || null,
+      date: selectedDate ? selectedDate.toISOString().split('T')[0] : null
+    }),
+    enabled: activeFilters.length > 0 || !!searchQuery || !!selectedDate,
+  });
+  
+  // Handle search input on hero section
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Handle search form submission
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // The search is already reactive with the useQuery hook above
+  };
   
   return (
     <Layout>
-      <ThisWeekendHero />
+      <ThisWeekendHero onSearchInput={handleSearchInput} onSearchSubmit={handleSearchSubmit} />
       
       <div className="container mx-auto px-4 pt-8 pb-16">
         {/* Filter Section - New implementation with Sheet */}

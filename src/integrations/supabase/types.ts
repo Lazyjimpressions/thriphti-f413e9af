@@ -54,6 +54,60 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          location: string
+          neighborhood: string | null
+          price_range: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          location: string
+          neighborhood?: string | null
+          price_range?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          location?: string
+          neighborhood?: string | null
+          price_range?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -514,6 +568,32 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      filter_events: {
+        Args: {
+          filter_categories?: string[]
+          filter_neighborhoods?: string[]
+          filter_price_ranges?: string[]
+          search_query?: string
+          filter_date?: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          location: string
+          neighborhood: string | null
+          price_range: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+          venue: string | null
+        }[]
+      }
       geography: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
@@ -737,6 +817,45 @@ export type Database = {
       geomfromewkt: {
         Args: { "": string }
         Returns: unknown
+      }
+      get_events_by_day: {
+        Args: { start_date: string; end_date: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          event_date: string
+          start_time: string
+          end_time: string
+          location: string
+          venue: string
+          image_url: string
+          category: string
+          neighborhood: string
+          price_range: string
+          featured: boolean
+          day_of_week: string
+        }[]
+      }
+      get_featured_events: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          location: string
+          neighborhood: string | null
+          price_range: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+          venue: string | null
+        }[]
       }
       get_proj4_from_srid: {
         Args: { "": number }

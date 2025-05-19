@@ -174,3 +174,65 @@ export async function getStoreReviews(storeId: string): Promise<(StoreReview & {
   if (error) throw new Error(`Failed to fetch store reviews: ${error.message}`);
   return data;
 }
+
+// EVENT-RELATED FUNCTIONS
+
+/**
+ * Fetches featured events
+ * @returns Promise<Event[]> Array of featured events
+ * @throws Error if the query fails
+ */
+export async function getFeaturedEvents() {
+  const { data, error } = await supabase.rpc('get_featured_events');
+  
+  if (error) throw new Error(`Failed to fetch featured events: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Fetches events by day for a specific date range
+ * @param startDate - The start date of the range
+ * @param endDate - The end date of the range
+ * @returns Promise<Event[]> Array of events with day of week
+ * @throws Error if the query fails
+ */
+export async function getEventsByDay(startDate: string, endDate: string) {
+  const { data, error } = await supabase.rpc('get_events_by_day', {
+    start_date: startDate,
+    end_date: endDate
+  });
+  
+  if (error) throw new Error(`Failed to fetch events by day: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Filters events based on various criteria
+ * @param options - Filter options
+ * @returns Promise<Event[]> Array of filtered events
+ * @throws Error if the query fails
+ */
+export async function filterEvents({
+  categories = null,
+  neighborhoods = null,
+  priceRanges = null,
+  searchQuery = null,
+  date = null
+}: {
+  categories?: string[] | null;
+  neighborhoods?: string[] | null;
+  priceRanges?: string[] | null;
+  searchQuery?: string | null;
+  date?: string | null;
+}) {
+  const { data, error } = await supabase.rpc('filter_events', {
+    filter_categories: categories,
+    filter_neighborhoods: neighborhoods,
+    filter_price_ranges: priceRanges,
+    search_query: searchQuery,
+    filter_date: date
+  });
+  
+  if (error) throw new Error(`Failed to filter events: ${error.message}`);
+  return data || [];
+}

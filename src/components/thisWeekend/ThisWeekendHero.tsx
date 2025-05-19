@@ -4,7 +4,12 @@ import { fadeInUpVariants, heroFadeInVariants } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
-export default function ThisWeekendHero() {
+interface ThisWeekendHeroProps {
+  onSearchInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchSubmit?: (e: React.FormEvent) => void;
+}
+
+export default function ThisWeekendHero({ onSearchInput, onSearchSubmit }: ThisWeekendHeroProps) {
   const currentDate = new Date();
   // Format date as "May 18-19" (current weekend)
   const startDay = currentDate.getDate();
@@ -48,19 +53,23 @@ export default function ThisWeekendHero() {
             </p>
 
             {/* Search Field */}
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form 
+              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+              onSubmit={onSearchSubmit}
+            >
               <div className="relative flex-grow">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <input 
                   type="text" 
                   placeholder="Find events by neighborhood" 
                   className="w-full pl-10 pr-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-thriphti-rust"
+                  onChange={onSearchInput}
                 />
               </div>
-              <Button className="bg-thriphti-rust hover:bg-thriphti-rust/90 text-white py-3 px-6">
+              <Button type="submit" className="bg-thriphti-rust hover:bg-thriphti-rust/90 text-white py-3 px-6">
                 Search
               </Button>
-            </div>
+            </form>
           </motion.div>
         </div>
       </div>
