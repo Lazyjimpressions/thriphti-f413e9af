@@ -71,7 +71,7 @@ export default function Profile() {
             role: data.role || null,
             created_at: data.created_at || null,
             avatar_url: data.avatar_url || null,
-            updated_at: new Date().toISOString(),
+            updated_at: data.updated_at || new Date().toISOString(),
           };
           
           setProfile(profileData);
