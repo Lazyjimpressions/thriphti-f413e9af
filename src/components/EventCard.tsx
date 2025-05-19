@@ -70,16 +70,24 @@ export default function EventCard({ event, onSelect, index = 0 }: EventCardProps
           </div>
         </CardContent>
         <CardFooter>
-          <Button 
-            variant="ghost" 
-            className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
-            onClick={() => onSelect && onSelect(event)}
-            as={onSelect ? undefined : Link}
-            to={onSelect ? undefined : event.source_url || '#'}
-          >
-            View Details
-            <ArrowRight size={16} />
-          </Button>
+          {onSelect ? (
+            <Button 
+              variant="ghost" 
+              className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
+              onClick={() => onSelect && onSelect(event)}
+            >
+              View Details
+              <ArrowRight size={16} />
+            </Button>
+          ) : (
+            <Link 
+              to={event.source_url || '#'} 
+              className="text-[#1C392C] hover:text-thriphti-rust p-0 flex items-center gap-1 font-medium"
+            >
+              View Details
+              <ArrowRight size={16} className="ml-1" />
+            </Link>
+          )}
         </CardFooter>
       </Card>
     </motion.div>

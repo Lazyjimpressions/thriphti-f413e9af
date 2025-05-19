@@ -128,11 +128,7 @@ export default function EventsByDay() {
             {dayEvents.map((event, index) => (
               <div key={event.id} className="h-full flex flex-col">
                 <EventCard
-                  title={event.title}
-                  image={event.image_url || '/placeholder.svg'}
-                  date={new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  location={event.location}
-                  tag={event.category}
+                  event={event}
                   index={index}
                 />
                 
