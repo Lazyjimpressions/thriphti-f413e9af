@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import NavigationBar from "@/components/layout/NavigationBar";
+import Layout from "@/components/layout/Layout";
 import Index from "./pages/Index";
 import Stores from "./pages/Stores";
 import StoreDetail from "./pages/StoreDetail";
@@ -28,8 +28,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen relative">
-            <NavigationBar />
+          <Layout>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/stores" element={<Stores />} />
@@ -48,7 +47,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </div>
+          </Layout>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

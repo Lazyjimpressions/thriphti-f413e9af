@@ -35,20 +35,20 @@ const NavigationBar = () => {
 
         {/* Navigation Links - Desktop */}
         {!isMobile && (
-          <div className="flex gap-8">
+          <div className="flex gap-8 mx-auto">
             {navLinks.map(({ to, label, icon: Icon }) => (
               <Link 
                 key={to} 
                 to={to} 
                 className={cn(
-                  "flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors group",
+                  "flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors group relative",
                   location.pathname === to && "text-thriphti-green"
                 )}
               >
                 <Icon size={18} className="group-hover:scale-110 transition-transform" />
                 <span>{label}</span>
                 {location.pathname === to && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-thriphti-green" />
+                  <span className="absolute -bottom-4 left-0 w-full h-0.5 bg-thriphti-green" />
                 )}
               </Link>
             ))}
@@ -57,14 +57,14 @@ const NavigationBar = () => {
 
         {/* Auth Buttons - Desktop */}
         {!isMobile && (
-          <div className="ml-auto">
+          <div className="ml-4">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors p-2 rounded-full hover:bg-gray-100">
                   <User size={20} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>
+                <DropdownMenuContent align="end" className="bg-white">
+                  <DropdownMenuItem disabled className="opacity-70">
                     <span className="text-sm text-gray-500">Signed in as</span>
                     <br />
                     <span className="font-medium truncate max-w-[200px] block">{user.email}</span>
@@ -84,9 +84,9 @@ const NavigationBar = () => {
             ) : (
               <Link 
                 to="/auth" 
-                className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors"
+                className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors px-4 py-2 border border-gray-200 rounded-md hover:bg-gray-50"
               >
-                <LogIn size={18} className="group-hover:scale-110 transition-transform" />
+                <LogIn size={18} />
                 <span>Sign In</span>
               </Link>
             )}
