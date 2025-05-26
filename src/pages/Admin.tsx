@@ -9,6 +9,7 @@ import AdminArticles from "@/components/admin/AdminArticles";
 import AdminStores from "@/components/admin/AdminStores";
 import AdminEvents from "@/components/admin/AdminEvents";
 import AdminUsers from "@/components/admin/AdminUsers";
+import AdminContentPipeline from "@/components/admin/AdminContentPipeline";
 import { Loader2 } from "lucide-react";
 
 export default function Admin() {
@@ -60,13 +61,25 @@ export default function Admin() {
         <p className="text-gray-600 mt-2">Manage content and moderate submissions</p>
       </div>
 
-      <Tabs defaultValue="articles" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="pipeline" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="pipeline">AI Pipeline</TabsTrigger>
           <TabsTrigger value="articles">Articles</TabsTrigger>
           <TabsTrigger value="stores">Stores</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="pipeline">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Content Pipeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminContentPipeline />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="articles">
           <Card>

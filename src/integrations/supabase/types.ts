@@ -11,46 +11,174 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          ai_generated: boolean | null
+          ai_metadata: Json | null
           author: string | null
+          auto_published: boolean | null
           body: string | null
           category: string | null
           city: string | null
+          confidence_score: number | null
           excerpt: string | null
           id: string
           image: string | null
+          pipeline_id: string | null
           published_at: string
           slug: string
+          source_type: string | null
           source_url: string | null
           tags: string[] | null
           title: string
         }
         Insert: {
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
           author?: string | null
+          auto_published?: boolean | null
           body?: string | null
           category?: string | null
           city?: string | null
+          confidence_score?: number | null
           excerpt?: string | null
           id?: string
           image?: string | null
+          pipeline_id?: string | null
           published_at?: string
           slug: string
+          source_type?: string | null
           source_url?: string | null
           tags?: string[] | null
           title: string
         }
         Update: {
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
           author?: string | null
+          auto_published?: boolean | null
           body?: string | null
           category?: string | null
           city?: string | null
+          confidence_score?: number | null
           excerpt?: string | null
           id?: string
           image?: string | null
+          pipeline_id?: string | null
           published_at?: string
           slug?: string
+          source_type?: string | null
           source_url?: string | null
           tags?: string[] | null
           title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "content_pipeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_pipeline: {
+        Row: {
+          ai_metadata: Json | null
+          content_type: string
+          created_at: string | null
+          duplicate_of: string | null
+          id: string
+          processed_data: Json | null
+          raw_data: Json | null
+          relevance_score: number | null
+          source_id: string | null
+          stage: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_metadata?: Json | null
+          content_type: string
+          created_at?: string | null
+          duplicate_of?: string | null
+          id?: string
+          processed_data?: Json | null
+          raw_data?: Json | null
+          relevance_score?: number | null
+          source_id?: string | null
+          stage: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_metadata?: Json | null
+          content_type?: string
+          created_at?: string | null
+          duplicate_of?: string | null
+          id?: string
+          processed_data?: Json | null
+          raw_data?: Json | null
+          relevance_score?: number | null
+          source_id?: string | null
+          stage?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_pipeline_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "content_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_pipeline_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_sources: {
+        Row: {
+          active: boolean | null
+          category: string
+          created_at: string | null
+          id: string
+          last_scraped: string | null
+          name: string
+          success_rate: number | null
+          successful_attempts: number | null
+          total_attempts: number | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          active?: boolean | null
+          category: string
+          created_at?: string | null
+          id?: string
+          last_scraped?: string | null
+          name: string
+          success_rate?: number | null
+          successful_attempts?: number | null
+          total_attempts?: number | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          active?: boolean | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          last_scraped?: string | null
+          name?: string
+          success_rate?: number | null
+          successful_attempts?: number | null
+          total_attempts?: number | null
+          updated_at?: string | null
+          url?: string
         }
         Relationships: []
       }
