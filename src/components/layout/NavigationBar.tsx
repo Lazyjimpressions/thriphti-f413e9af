@@ -24,16 +24,19 @@ const NavigationBar = () => {
   useEffect(() => {
     const checkAdminRole = async () => {
       if (!user) {
+        console.log("NavigationBar: No user, setting isAdmin to false");
         setIsAdmin(false);
         return;
       }
 
       try {
+        console.log("NavigationBar: Checking admin role for user:", user.id);
         const roles = await getUserRoles(user.id);
         const hasAdminRole = roles.some(role => role.role === 'admin');
+        console.log("NavigationBar: Has admin role:", hasAdminRole);
         setIsAdmin(hasAdminRole);
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        console.error('NavigationBar: Error checking admin role:', error);
         setIsAdmin(false);
       }
     };
@@ -86,6 +89,9 @@ const NavigationBar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors p-2 rounded-full hover:bg-gray-100">
                   <User size={20} />
+                  {process.env.NODE_ENV === 'development' && isAdmin && (
+                    <Shield size={16} className="text-red-500" title="Admin" />
+                  )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-white">
                   <DropdownMenuItem disabled className="opacity-70">
@@ -158,6 +164,11 @@ const NavigationBar = () => {
                     <div className="px-4 py-2">
                       <p className="text-sm text-gray-500">Signed in as</p>
                       <p className="font-medium truncate">{user.email}</p>
+                      {process.env.NODE_ENV === 'development' && isAdmin && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <Shield size={12} /> Admin
+                        </p>
+                      )}
                     </div>
                     <Link
                       to="/profile"

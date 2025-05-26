@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import type { Database } from './types';
 import { Event } from '@/types/event';
@@ -458,13 +457,27 @@ export async function updateEmailPreferences(
  * @throws Error if the operation fails
  */
 export async function getUserRoles(userId: string): Promise<UserRole[]> {
-  const { data, error } = await supabase
-    .from('user_roles')
-    .select('*')
-    .eq('user_id', userId);
+  console.log("getUserRoles called with userId:", userId);
   
-  if (error) throw new Error(`Failed to get user roles: ${error.message}`);
-  return data || [];
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('user_id', userId);
+    
+    console.log("getUserRoles query result:", { data, error });
+    
+    if (error) {
+      console.error("getUserRoles error:", error);
+      throw new Error(`Failed to get user roles: ${error.message}`);
+    }
+    
+    console.log("getUserRoles returning:", data || []);
+    return data || [];
+  } catch (e: any) {
+    console.error("getUserRoles exception:", e);
+    throw new Error(`Failed to get user roles: ${e.message}`);
+  }
 }
 
 /**

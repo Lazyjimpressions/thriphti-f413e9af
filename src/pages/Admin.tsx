@@ -17,22 +17,65 @@ export default function Admin() {
   const { user, isLoading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAdminRole = async () => {
+      console.log("=== ADMIN ACCESS DEBUG ===");
+      console.log("Auth loading:", authLoading);
+      console.log("User object:", user);
+      console.log("User ID:", user?.id);
+      console.log("User email:", user?.email);
+
       if (!user) {
+        console.log("No user found, redirecting to auth");
         setIsAdmin(false);
         setLoading(false);
+        setDebugInfo({ step: "no_user", user: null });
         return;
       }
 
       try {
+        console.log("Checking admin role for user ID:", user.id);
         const roles = await getUserRoles(user.id);
-        const hasAdminRole = roles.some(role => role.role === 'admin');
+        console.log("Roles returned:", roles);
+        
+        const hasAdminRole = roles.some(role => {
+          console.log("Checking role:", role, "role.role:", role.role);
+          return role.role === 'admin';
+        });
+        
+        console.log("Has admin role:", hasAdminRole);
+        
         setIsAdmin(hasAdminRole);
-      } catch (error) {
+        setDebugInfo({
+          step: "role_check_complete",
+          userId: user.id,
+          userEmail: user.email,
+          roles: roles,
+          hasAdminRole: hasAdminRole,
+          rolesLength: roles.length
+        });
+        
+        if (!hasAdminRole) {
+          console.log("User does not have admin role. Roles found:", roles);
+        }
+      } catch (error: any) {
         console.error('Error checking admin role:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          userId: user.id
+        });
         setIsAdmin(false);
+        setError(error.message);
+        setDebugInfo({
+          step: "error",
+          error: error.message,
+          userId: user.id,
+          userEmail: user.email
+        });
       } finally {
         setLoading(false);
       }
@@ -47,7 +90,61 @@ export default function Admin() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-screen">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading admin access...</p>
+            {debugInfo && (
+              <div className="mt-4 text-sm text-gray-600">
+                Debug: {debugInfo.step}
+              </div>
+            )}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show debug information for troubleshooting
+  if (process.env.NODE_ENV === 'development' && (error || !isAdmin)) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-red-800 mb-4">Admin Access Debug Information</h2>
+            
+            {error && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-red-700">Error:</h3>
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <h3 className="font-semibold text-red-700">Debug Info:</h3>
+              <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </div>
+            
+            <div className="mt-4 space-y-2">
+              <h3 className="font-semibold text-red-700">Troubleshooting Steps:</h3>
+              <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
+                <li>Check if user_roles table has entry for user ID: {user?.id}</li>
+                <li>Verify role is exactly 'admin' (case sensitive)</li>
+                <li>Ensure getUserRoles function is working correctly</li>
+                <li>Check Supabase RLS policies on user_roles table</li>
+              </ul>
+            </div>
+
+            <div className="mt-4">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -63,6 +160,11 @@ export default function Admin() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-thriphti-green">Admin Dashboard</h1>
           <p className="text-gray-600 mt-2">Manage content and moderate submissions</p>
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-2 text-xs text-green-600">
+              ✅ Admin access confirmed for {user.email}
+            </div>
+          )}
         </div>
 
         <Tabs defaultValue="pipeline" className="space-y-6">
