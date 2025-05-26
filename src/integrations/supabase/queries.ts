@@ -1,6 +1,6 @@
 
 import { supabase } from './client';
-import type { Database } from '@/types/supabase';
+import type { Database } from './types';
 import { Event } from '@/types/event';
 
 // Type aliases for better readability
