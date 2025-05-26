@@ -1,21 +1,45 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Calendar, BookOpen, Map, Store, Sparkles, User, LogIn, LogOut, Settings } from "lucide-react";
+import { Menu, Calendar, BookOpen, Map, Store, Sparkles, User, LogIn, LogOut, Settings, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { getUserRoles } from "@/integrations/supabase/queries";
 
 const NavigationBar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const roles = await getUserRoles(user.id);
+        const hasAdminRole = roles.some(role => role.role === 'admin');
+        setIsAdmin(hasAdminRole);
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
 
   const navLinks = [
     { to: "/this-weekend", label: "This Weekend", icon: Calendar },
@@ -75,6 +99,18 @@ const NavigationBar = () => {
                       <span>Your Profile</span>
                     </Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin">
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
@@ -130,6 +166,15 @@ const NavigationBar = () => {
                       <Settings size={20} />
                       <span>Your Profile</span>
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <Shield size={20} />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
                     <button
                       onClick={() => signOut()}
                       className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors text-red-500"

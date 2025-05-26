@@ -10,6 +10,7 @@ import AdminStores from "@/components/admin/AdminStores";
 import AdminEvents from "@/components/admin/AdminEvents";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminContentPipeline from "@/components/admin/AdminContentPipeline";
+import Layout from "@/components/layout/Layout";
 import { Loader2 } from "lucide-react";
 
 export default function Admin() {
@@ -44,9 +45,11 @@ export default function Admin() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
     );
   }
 
@@ -55,76 +58,78 @@ export default function Admin() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-thriphti-green">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-2">Manage content and moderate submissions</p>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-thriphti-green">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-2">Manage content and moderate submissions</p>
+        </div>
+
+        <Tabs defaultValue="pipeline" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="pipeline">AI Pipeline</TabsTrigger>
+            <TabsTrigger value="articles">Articles</TabsTrigger>
+            <TabsTrigger value="stores">Stores</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pipeline">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Content Pipeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminContentPipeline />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="articles">
+            <Card>
+              <CardHeader>
+                <CardTitle>Article Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminArticles />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="stores">
+            <Card>
+              <CardHeader>
+                <CardTitle>Store Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminStores />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="events">
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminEvents />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminUsers />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="pipeline" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="pipeline">AI Pipeline</TabsTrigger>
-          <TabsTrigger value="articles">Articles</TabsTrigger>
-          <TabsTrigger value="stores">Stores</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pipeline">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Content Pipeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminContentPipeline />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="articles">
-          <Card>
-            <CardHeader>
-              <CardTitle>Article Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminArticles />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="stores">
-          <Card>
-            <CardHeader>
-              <CardTitle>Store Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminStores />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="events">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminEvents />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminUsers />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+    </Layout>
   );
 }
