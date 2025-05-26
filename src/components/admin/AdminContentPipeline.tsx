@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock, Settings, Database } from "lucide-react";
+import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock, Settings, Database, AlertTriangle } from "lucide-react";
+import SupabaseHealthMonitor from "@/components/SupabaseHealthMonitor";
 
 interface ContentPipelineItem {
   id: string;
@@ -36,11 +37,23 @@ export default function AdminContentPipeline() {
   const [loading, setLoading] = useState(true);
   const [harvesting, setHarvesting] = useState(false);
   const [settingUp, setSettingUp] = useState(false);
+  const [connectionIssue, setConnectionIssue] = useState(false);
 
   useEffect(() => {
     fetchPipelineData();
     fetchSources();
   }, []);
+
+  const handleConnectionIssue = () => {
+    console.log('Connection issue detected in AdminContentPipeline');
+    setConnectionIssue(true);
+    // Auto-retry after a short delay
+    setTimeout(() => {
+      setConnectionIssue(false);
+      fetchPipelineData();
+      fetchSources();
+    }, 3000);
+  };
 
   const fetchPipelineData = async () => {
     try {
@@ -214,13 +227,24 @@ export default function AdminContentPipeline() {
 
   return (
     <div className="space-y-6">
+      <SupabaseHealthMonitor onConnectionIssue={handleConnectionIssue} />
+      
+      {connectionIssue && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+          <p className="text-red-800">
+            <strong>Connection Issue Detected:</strong> There may be a problem with the Supabase connection. Retrying automatically...
+          </p>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">AI Content Pipeline</h2>
         <div className="flex gap-2">
           <Button 
             onClick={setupTestSources}
             variant="outline"
-            disabled={settingUp || harvesting}
+            disabled={settingUp || harvesting || connectionIssue}
             className="flex items-center gap-2"
           >
             <Database className="h-4 w-4" />
@@ -229,14 +253,14 @@ export default function AdminContentPipeline() {
           <Button 
             onClick={fetchPipelineData} 
             variant="outline"
-            disabled={harvesting || settingUp}
+            disabled={harvesting || settingUp || connectionIssue}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${(harvesting || settingUp) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button 
             onClick={runContentHarvester}
-            disabled={harvesting || settingUp}
+            disabled={harvesting || settingUp || connectionIssue}
             className="bg-thriphti-green hover:bg-thriphti-green/90"
           >
             <Play className="h-4 w-4 mr-2" />
