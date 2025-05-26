@@ -151,10 +151,19 @@ export type Database = {
         Row: {
           active: boolean | null
           category: string
+          consecutive_failures: number | null
           created_at: string | null
           id: string
+          keywords: string[] | null
+          last_error_message: string | null
           last_scraped: string | null
+          max_retries: number | null
           name: string
+          neighborhoods: string[] | null
+          priority: number | null
+          schedule: string | null
+          scrape_config: Json | null
+          source_type: string
           success_rate: number | null
           successful_attempts: number | null
           total_attempts: number | null
@@ -164,10 +173,19 @@ export type Database = {
         Insert: {
           active?: boolean | null
           category: string
+          consecutive_failures?: number | null
           created_at?: string | null
           id?: string
+          keywords?: string[] | null
+          last_error_message?: string | null
           last_scraped?: string | null
+          max_retries?: number | null
           name: string
+          neighborhoods?: string[] | null
+          priority?: number | null
+          schedule?: string | null
+          scrape_config?: Json | null
+          source_type?: string
           success_rate?: number | null
           successful_attempts?: number | null
           total_attempts?: number | null
@@ -177,10 +195,19 @@ export type Database = {
         Update: {
           active?: boolean | null
           category?: string
+          consecutive_failures?: number | null
           created_at?: string | null
           id?: string
+          keywords?: string[] | null
+          last_error_message?: string | null
           last_scraped?: string | null
+          max_retries?: number | null
           name?: string
+          neighborhoods?: string[] | null
+          priority?: number | null
+          schedule?: string | null
+          scrape_config?: Json | null
+          source_type?: string
           success_rate?: number | null
           successful_attempts?: number | null
           total_attempts?: number | null
