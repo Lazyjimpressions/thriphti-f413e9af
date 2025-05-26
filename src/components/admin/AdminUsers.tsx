@@ -12,12 +12,12 @@ import type { Database } from '@/types/supabase';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type UserRole = Database['public']['Tables']['user_roles']['Row'];
 
-interface UserWithRoles extends Profile {
-  user_roles: UserRole[];
+interface UserWithRole extends Profile {
+  role: string;
 }
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<UserWithRoles[]>([]);
+  const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,16 +26,31 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles (*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data as UserWithRoles[] || []);
+      if (profilesError) throw profilesError;
+
+      // Then get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+
+      if (rolesError) throw rolesError;
+
+      // Combine the data
+      const usersWithRoles = profiles?.map(profile => {
+        const userRole = userRoles?.find(role => role.user_id === profile.id);
+        return {
+          ...profile,
+          role: userRole?.role || 'user'
+        };
+      }) || [];
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -68,7 +83,7 @@ export default function AdminUsers() {
         if (user.id === userId) {
           return {
             ...user,
-            user_roles: [{ id: '', user_id: userId, role: newRole, created_at: new Date().toISOString() }]
+            role: newRole
           };
         }
         return user;
@@ -86,10 +101,6 @@ export default function AdminUsers() {
         variant: "destructive"
       });
     }
-  };
-
-  const getUserRole = (user: UserWithRoles): string => {
-    return user.user_roles?.[0]?.role || 'user';
   };
 
   if (loading) {
@@ -112,63 +123,60 @@ export default function AdminUsers() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => {
-              const currentRole = getUserRole(user);
-              return (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {user.avatar_url ? (
-                        <img 
-                          src={user.avatar_url} 
-                          alt={user.full_name || 'User'} 
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                          <User className="h-4 w-4" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="font-medium">
-                          {user.full_name || 'No name'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          ID: {user.id.slice(0, 8)}...
-                        </div>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    {user.avatar_url ? (
+                      <img 
+                        src={user.avatar_url} 
+                        alt={user.full_name || 'User'} 
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="h-4 w-4" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-medium">
+                        {user.full_name || 'No name'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        ID: {user.id.slice(0, 8)}...
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={currentRole === 'admin' ? 'default' : 'secondary'}
-                      className={currentRole === 'admin' ? 'bg-red-100 text-red-800' : ''}
-                    >
-                      {currentRole === 'admin' && <Shield className="h-3 w-3 mr-1" />}
-                      {currentRole}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {user.created_at && new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={currentRole}
-                      onValueChange={(value: 'user' | 'admin') => updateUserRole(user.id, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                  </div>
+                </TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={user.role === 'admin' ? 'default' : 'secondary'}
+                    className={user.role === 'admin' ? 'bg-red-100 text-red-800' : ''}
+                  >
+                    {user.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
+                    {user.role}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {user.created_at && new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Select
+                    value={user.role}
+                    onValueChange={(value: 'user' | 'admin') => updateUserRole(user.id, value)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

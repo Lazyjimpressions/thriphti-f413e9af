@@ -17,14 +17,24 @@ import type { Database } from '@/types/supabase';
 
 type Article = Database['public']['Tables']['articles']['Row'];
 type ArticleInsert = Database['public']['Tables']['articles']['Insert'];
-type ArticleUpdate = Database['public']['Tables']['articles']['Update'];
 
 export default function AdminArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [formData, setFormData] = useState<Partial<ArticleInsert>>({
+  const [formData, setFormData] = useState<{
+    title: string;
+    slug: string;
+    excerpt: string;
+    body: string;
+    image: string;
+    author: string;
+    category: string;
+    tags: string[];
+    city: string;
+    source_url: string;
+  }>({
     title: '',
     slug: '',
     excerpt: '',
@@ -64,7 +74,7 @@ export default function AdminArticles() {
       .replace(/(^-|-$)/g, '');
   };
 
-  const handleFormChange = (field: keyof ArticleInsert, value: any) => {
+  const handleFormChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -104,10 +114,19 @@ export default function AdminArticles() {
   };
 
   const handleCreate = async () => {
+    if (!formData.title || !formData.slug) {
+      toast({
+        title: "Error",
+        description: "Title and slug are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('articles')
-        .insert([formData])
+        .insert(formData)
         .select()
         .single();
 
@@ -191,16 +210,16 @@ export default function AdminArticles() {
   const startEdit = (article: Article) => {
     setEditingArticle(article);
     setFormData({
-      title: article.title,
-      slug: article.slug,
-      excerpt: article.excerpt,
-      body: article.body,
-      image: article.image,
-      author: article.author,
-      category: article.category,
+      title: article.title || '',
+      slug: article.slug || '',
+      excerpt: article.excerpt || '',
+      body: article.body || '',
+      image: article.image || '',
+      author: article.author || '',
+      category: article.category || '',
       tags: article.tags || [],
-      city: article.city,
-      source_url: article.source_url
+      city: article.city || 'Dallas',
+      source_url: article.source_url || ''
     });
   };
 
@@ -208,21 +227,23 @@ export default function AdminArticles() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title">Title</Label>
+          <Label htmlFor="title">Title *</Label>
           <Input
             id="title"
-            value={formData.title || ''}
+            value={formData.title}
             onChange={(e) => handleFormChange('title', e.target.value)}
             placeholder="Article title"
+            required
           />
         </div>
         <div>
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="slug">Slug *</Label>
           <Input
             id="slug"
-            value={formData.slug || ''}
+            value={formData.slug}
             onChange={(e) => handleFormChange('slug', e.target.value)}
             placeholder="article-slug"
+            required
           />
         </div>
       </div>
@@ -232,14 +253,14 @@ export default function AdminArticles() {
           <Label htmlFor="author">Author</Label>
           <Input
             id="author"
-            value={formData.author || ''}
+            value={formData.author}
             onChange={(e) => handleFormChange('author', e.target.value)}
             placeholder="Author name"
           />
         </div>
         <div>
           <Label htmlFor="category">Category</Label>
-          <Select value={formData.category || ''} onValueChange={(value) => handleFormChange('category', value)}>
+          <Select value={formData.category} onValueChange={(value) => handleFormChange('category', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -259,7 +280,7 @@ export default function AdminArticles() {
         <Label htmlFor="excerpt">Excerpt</Label>
         <Textarea
           id="excerpt"
-          value={formData.excerpt || ''}
+          value={formData.excerpt}
           onChange={(e) => handleFormChange('excerpt', e.target.value)}
           placeholder="Brief description of the article"
           rows={2}
@@ -270,7 +291,7 @@ export default function AdminArticles() {
         <Label htmlFor="body">Content</Label>
         <Textarea
           id="body"
-          value={formData.body || ''}
+          value={formData.body}
           onChange={(e) => handleFormChange('body', e.target.value)}
           placeholder="Article content (Markdown supported)"
           rows={10}
@@ -282,7 +303,7 @@ export default function AdminArticles() {
           <Label htmlFor="image">Image URL</Label>
           <Input
             id="image"
-            value={formData.image || ''}
+            value={formData.image}
             onChange={(e) => handleFormChange('image', e.target.value)}
             placeholder="https://example.com/image.jpg"
           />
@@ -291,7 +312,7 @@ export default function AdminArticles() {
           <Label htmlFor="source_url">Source URL</Label>
           <Input
             id="source_url"
-            value={formData.source_url || ''}
+            value={formData.source_url}
             onChange={(e) => handleFormChange('source_url', e.target.value)}
             placeholder="https://source.com/article"
           />
@@ -302,7 +323,7 @@ export default function AdminArticles() {
         <Label htmlFor="tags">Tags (comma-separated)</Label>
         <Input
           id="tags"
-          value={formData.tags?.join(', ') || ''}
+          value={formData.tags.join(', ')}
           onChange={(e) => handleTagsChange(e.target.value)}
           placeholder="thrifting, dallas, vintage"
         />
