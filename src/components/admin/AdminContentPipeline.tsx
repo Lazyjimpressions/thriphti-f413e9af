@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -60,7 +59,7 @@ export default function AdminContentPipeline() {
         });
         setPipelineItems([]);
       } else {
-        setPipelineItems((data as ContentPipelineItem[]) || []);
+        setPipelineItems((data as unknown as ContentPipelineItem[]) || []);
       }
     } catch (error) {
       console.error('Error fetching pipeline data:', error);
@@ -85,7 +84,7 @@ export default function AdminContentPipeline() {
         console.error('Error fetching sources:', error);
         setSources([]);
       } else {
-        setSources((data as ContentSource[]) || []);
+        setSources((data as unknown as ContentSource[]) || []);
       }
     } catch (error) {
       console.error('Error fetching sources:', error);
