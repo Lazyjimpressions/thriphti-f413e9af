@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,7 +6,7 @@ import { getApprovedStores } from "@/integrations/supabase/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Check, X, Eye } from "lucide-react";
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/integrations/supabase/types';
 
 type Store = Database['public']['Tables']['stores']['Row'];
 

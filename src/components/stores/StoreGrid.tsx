@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import StoreCard from "./StoreCard";
 import { staggerContainerVariants } from "@/lib/motion";
 import { getApprovedStores } from '@/integrations/supabase/queries';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/integrations/supabase/types';
 
 // Type alias for store
 // This matches the Supabase schema

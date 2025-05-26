@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,7 @@ import { getAllArticles } from "@/integrations/supabase/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus, ExternalLink } from "lucide-react";
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/integrations/supabase/types';
 
 type Article = Database['public']['Tables']['articles']['Row'];
 type ArticleInsert = Database['public']['Tables']['articles']['Insert'];

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ArticleCard from "./ArticleCard";
 import { getAllArticles } from "@/integrations/supabase/queries";
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/integrations/supabase/types';
 import type { Article } from "@/types/article";
 import { toast } from "@/hooks/use-toast";
 
