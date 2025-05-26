@@ -44,21 +44,23 @@ export default function AdminContentPipeline() {
 
   const fetchPipelineData = async () => {
     try {
-      // Use raw SQL query to bypass type checking
-      const { data, error } = await supabase.rpc('get_content_pipeline_data');
+      // Use direct SQL query to get content pipeline data
+      const { data, error } = await supabase
+        .from('content_pipeline' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
       
       if (error) {
-        // Fallback to direct query if RPC doesn't exist
-        const { data: fallbackData, error: fallbackError } = await (supabase as any)
-          .from('content_pipeline')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        
-        if (fallbackError) throw fallbackError;
-        setPipelineItems(fallbackData || []);
+        console.error('Error fetching pipeline data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch content pipeline data",
+          variant: "destructive"
+        });
+        setPipelineItems([]);
       } else {
-        setPipelineItems(data || []);
+        setPipelineItems((data as ContentPipelineItem[]) || []);
       }
     } catch (error) {
       console.error('Error fetching pipeline data:', error);
@@ -67,31 +69,26 @@ export default function AdminContentPipeline() {
         description: "Failed to fetch content pipeline data",
         variant: "destructive"
       });
-      // Set empty array on error
       setPipelineItems([]);
     }
   };
 
   const fetchSources = async () => {
     try {
-      // Use raw SQL query to bypass type checking
-      const { data, error } = await supabase.rpc('get_content_sources_data');
+      // Use direct SQL query to get content sources data
+      const { data, error } = await supabase
+        .from('content_sources' as any)
+        .select('*')
+        .order('name');
       
       if (error) {
-        // Fallback to direct query if RPC doesn't exist
-        const { data: fallbackData, error: fallbackError } = await (supabase as any)
-          .from('content_sources')
-          .select('*')
-          .order('name');
-        
-        if (fallbackError) throw fallbackError;
-        setSources(fallbackData || []);
+        console.error('Error fetching sources:', error);
+        setSources([]);
       } else {
-        setSources(data || []);
+        setSources((data as ContentSource[]) || []);
       }
     } catch (error) {
       console.error('Error fetching sources:', error);
-      // Set empty array on error
       setSources([]);
     } finally {
       setLoading(false);
@@ -107,7 +104,7 @@ export default function AdminContentPipeline() {
 
       toast({
         title: "Success",
-        description: `Content harvester completed! Generated ${data.articles} articles from ${data.scraped} sources.`
+        description: `Content harvester completed! Generated ${data?.articles || 0} articles from ${data?.scraped || 0} sources.`
       });
 
       // Refresh data
@@ -128,8 +125,8 @@ export default function AdminContentPipeline() {
 
   const updateItemStatus = async (id: string, status: string) => {
     try {
-      const { error } = await (supabase as any)
-        .from('content_pipeline')
+      const { error } = await supabase
+        .from('content_pipeline' as any)
         .update({ status })
         .eq('id', id);
 
