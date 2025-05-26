@@ -138,6 +138,13 @@ export type Database = {
             referencedRelation: "content_sources"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_content_pipeline_source"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
         ]
       }
       content_sources: {
@@ -1036,6 +1043,19 @@ export type Database = {
       geomfromewkt: {
         Args: { "": string }
         Returns: unknown
+      }
+      get_active_sources_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_content_pipeline_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_items: number
+          pending_items: number
+          approved_items: number
+          rejected_items: number
+        }[]
       }
       get_events_by_day: {
         Args: { start_date: string; end_date: string }
