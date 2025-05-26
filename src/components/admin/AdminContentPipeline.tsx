@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock, Settings, Database } from "lucide-react";
 
 interface ContentPipelineItem {
   id: string;
@@ -35,6 +35,7 @@ export default function AdminContentPipeline() {
   const [sources, setSources] = useState<ContentSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [harvesting, setHarvesting] = useState(false);
+  const [settingUp, setSettingUp] = useState(false);
 
   useEffect(() => {
     fetchPipelineData();
@@ -43,7 +44,7 @@ export default function AdminContentPipeline() {
 
   const fetchPipelineData = async () => {
     try {
-      // Use direct SQL query to get content pipeline data
+      console.log('Fetching content pipeline data...');
       const { data, error } = await supabase
         .from('content_pipeline' as any)
         .select('*')
@@ -59,6 +60,7 @@ export default function AdminContentPipeline() {
         });
         setPipelineItems([]);
       } else {
+        console.log(`Fetched ${data?.length || 0} pipeline items`);
         setPipelineItems((data as unknown as ContentPipelineItem[]) || []);
       }
     } catch (error) {
@@ -74,7 +76,7 @@ export default function AdminContentPipeline() {
 
   const fetchSources = async () => {
     try {
-      // Use direct SQL query to get content sources data
+      console.log('Fetching content sources...');
       const { data, error } = await supabase
         .from('content_sources' as any)
         .select('*')
@@ -84,6 +86,7 @@ export default function AdminContentPipeline() {
         console.error('Error fetching sources:', error);
         setSources([]);
       } else {
+        console.log(`Fetched ${data?.length || 0} content sources`);
         setSources((data as unknown as ContentSource[]) || []);
       }
     } catch (error) {
@@ -94,16 +97,50 @@ export default function AdminContentPipeline() {
     }
   };
 
-  const runContentHarvester = async () => {
-    setHarvesting(true);
+  const setupTestSources = async () => {
+    setSettingUp(true);
     try {
-      const { data, error } = await supabase.functions.invoke('content-harvester');
+      console.log('Setting up test content sources...');
+      const { data, error } = await supabase.functions.invoke('setup-test-content-sources');
       
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Content harvester completed! Generated ${data?.articles || 0} articles from ${data?.scraped || 0} sources.`
+        description: data.message || "Test content sources setup completed!"
+      });
+
+      // Refresh sources
+      await fetchSources();
+
+    } catch (error: any) {
+      console.error('Error setting up test sources:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to setup test sources",
+        variant: "destructive"
+      });
+    } finally {
+      setSettingUp(false);
+    }
+  };
+
+  const runContentHarvester = async () => {
+    setHarvesting(true);
+    try {
+      console.log('Running content harvester...');
+      const { data, error } = await supabase.functions.invoke('content-harvester');
+      
+      if (error) {
+        console.error('Content harvester error:', error);
+        throw error;
+      }
+
+      console.log('Content harvester response:', data);
+
+      toast({
+        title: "Content Harvester Completed",
+        description: `Generated ${data?.articles || 0} articles from ${data?.scraped || 0} sources. Processed ${data?.processed || 0} items.`
       });
 
       // Refresh data
@@ -113,8 +150,8 @@ export default function AdminContentPipeline() {
     } catch (error: any) {
       console.error('Error running content harvester:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to run content harvester",
+        title: "Content Harvester Error",
+        description: error.message || "Failed to run content harvester. Check the edge function logs for details.",
         variant: "destructive"
       });
     } finally {
@@ -181,16 +218,25 @@ export default function AdminContentPipeline() {
         <h2 className="text-2xl font-bold">AI Content Pipeline</h2>
         <div className="flex gap-2">
           <Button 
+            onClick={setupTestSources}
+            variant="outline"
+            disabled={settingUp || harvesting}
+            className="flex items-center gap-2"
+          >
+            <Database className="h-4 w-4" />
+            {settingUp ? 'Setting up...' : 'Setup Test Sources'}
+          </Button>
+          <Button 
             onClick={fetchPipelineData} 
             variant="outline"
-            disabled={harvesting}
+            disabled={harvesting || settingUp}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${harvesting ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${(harvesting || settingUp) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button 
             onClick={runContentHarvester}
-            disabled={harvesting}
+            disabled={harvesting || settingUp}
             className="bg-thriphti-green hover:bg-thriphti-green/90"
           >
             <Play className="h-4 w-4 mr-2" />
@@ -199,10 +245,18 @@ export default function AdminContentPipeline() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {sources.length === 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800">
+            <strong>No content sources found.</strong> Click "Setup Test Sources" to add sample content sources for testing the AI harvester.
+          </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Pipeline Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pipelineItems.length}</div>
@@ -228,6 +282,14 @@ export default function AdminContentPipeline() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Sources</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{sources.length}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -235,84 +297,90 @@ export default function AdminContentPipeline() {
           <CardTitle>Content Pipeline Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Content</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Relevance</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pipelineItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {item.processed_data?.title || item.raw_data?.title || 'Untitled'}
-                      </div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {item.processed_data?.description || item.raw_data?.description || ''}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{item.content_type}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm font-medium">
-                        {item.relevance_score ? `${item.relevance_score}/10` : 'N/A'}
-                      </div>
-                      {item.relevance_score && (
-                        <div className="w-16 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-thriphti-green h-2 rounded-full" 
-                            style={{ width: `${item.relevance_score * 10}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell>
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {item.status === 'pending' && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateItemStatus(item.id, 'approved')}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateItemStatus(item.id, 'rejected')}
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {pipelineItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No pipeline items found. Run the AI Harvester to generate content.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Content</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Relevance</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {pipelineItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {item.processed_data?.title || item.raw_data?.title || 'Untitled'}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                          {item.processed_data?.description || item.raw_data?.description || ''}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{item.content_type}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium">
+                          {item.relevance_score ? `${item.relevance_score}/10` : 'N/A'}
+                        </div>
+                        {item.relevance_score && (
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-thriphti-green h-2 rounded-full" 
+                              style={{ width: `${item.relevance_score * 10}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell>
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {item.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateItemStatus(item.id, 'approved')}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateItemStatus(item.id, 'rejected')}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -321,55 +389,61 @@ export default function AdminContentPipeline() {
           <CardTitle>Content Sources</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Source</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Success Rate</TableHead>
-                <TableHead>Last Scraped</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sources.map((source) => (
-                <TableRow key={source.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{source.name}</div>
-                      <div className="text-sm text-gray-500 truncate">
-                        {source.url}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{source.category}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm">
-                        {Math.round((source.success_rate || 0) * 100)}%
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ({source.total_attempts || 0} attempts)
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {source.last_scraped ? 
-                      new Date(source.last_scraped).toLocaleDateString() : 
-                      'Never'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={source.active ? "default" : "secondary"}>
-                      {source.active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
+          {sources.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No content sources configured. Click "Setup Test Sources" to get started.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Success Rate</TableHead>
+                  <TableHead>Last Scraped</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {sources.map((source) => (
+                  <TableRow key={source.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{source.name}</div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {source.url}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{source.category}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm">
+                          {Math.round((source.success_rate || 0) * 100)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ({source.total_attempts || 0} attempts)
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {source.last_scraped ? 
+                        new Date(source.last_scraped).toLocaleDateString() : 
+                        'Never'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={source.active ? "default" : "secondary"}>
+                        {source.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
