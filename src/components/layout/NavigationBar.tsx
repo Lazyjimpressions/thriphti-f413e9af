@@ -23,6 +23,7 @@ const NavigationBar = () => {
 
   useEffect(() => {
     const checkAdminRole = async () => {
+      console.log("=== NAVIGATION BAR ADMIN CHECK ===");
       if (!user) {
         console.log("NavigationBar: No user, setting isAdmin to false");
         setIsAdmin(false);
@@ -31,8 +32,10 @@ const NavigationBar = () => {
 
       try {
         console.log("NavigationBar: Checking admin role for user:", user.id);
+        console.log("NavigationBar: User email:", user.email);
         const roles = await getUserRoles(user.id);
         const hasAdminRole = roles.some(role => role.role === 'admin');
+        console.log("NavigationBar: Roles returned:", roles);
         console.log("NavigationBar: Has admin role:", hasAdminRole);
         setIsAdmin(hasAdminRole);
       } catch (error) {
@@ -90,7 +93,7 @@ const NavigationBar = () => {
                 <DropdownMenuTrigger className="flex items-center gap-2 text-thriphti-charcoal hover:text-thriphti-green transition-colors p-2 rounded-full hover:bg-gray-100">
                   <User size={20} />
                   {process.env.NODE_ENV === 'development' && isAdmin && (
-                    <Shield size={16} className="text-red-500" title="Admin" />
+                    <Shield size={16} className="text-red-500" />
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-white">
