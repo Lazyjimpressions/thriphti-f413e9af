@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Rss, Plus, ExternalLink, AlertCircle } from "lucide-react";
+import { Rss, Plus, ExternalLink, AlertCircle, AlertTriangle } from "lucide-react";
 
 interface SuggestedFeed {
   name: string;
@@ -12,7 +12,8 @@ interface SuggestedFeed {
   description: string;
   category: string;
   popularity: number;
-  status: 'active' | 'inactive' | 'unknown';
+  status: 'active' | 'inactive' | 'unknown' | 'problematic';
+  issues?: string[];
 }
 
 interface RssDiscoveryPanelProps {
@@ -25,8 +26,9 @@ const suggestedFeeds: SuggestedFeed[] = [
     url: "https://gsalr.com/rss",
     description: "Community-driven garage sale listings and announcements",
     category: "Garage Sales",
-    popularity: 8,
-    status: 'unknown'
+    popularity: 6,
+    status: 'problematic',
+    issues: ["Feed URL may not exist", "Check site for actual RSS feeds"]
   },
   {
     name: "Craigslist - Garage Sales Dallas",
@@ -103,9 +105,18 @@ export default function RssDiscoveryPanel({ onFeedSelect }: RssDiscoveryPanelPro
         return 'bg-green-100 text-green-800';
       case 'inactive':
         return 'bg-red-100 text-red-800';
+      case 'problematic':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getStatusIcon = (status: string) => {
+    if (status === 'problematic') {
+      return <AlertTriangle className="h-3 w-3" />;
+    }
+    return null;
   };
 
   return (
@@ -138,11 +149,27 @@ export default function RssDiscoveryPanel({ onFeedSelect }: RssDiscoveryPanelPro
                     <Badge variant="secondary" className="text-xs">
                       {feed.category}
                     </Badge>
-                    <Badge className={`text-xs ${getStatusColor(feed.status)}`}>
+                    <Badge className={`text-xs flex items-center gap-1 ${getStatusColor(feed.status)}`}>
+                      {getStatusIcon(feed.status)}
                       {feed.status}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{feed.description}</p>
+                  
+                  {feed.issues && feed.issues.length > 0 && (
+                    <div className="mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                      <div className="flex items-center gap-1 text-orange-700 font-medium mb-1">
+                        <AlertCircle className="h-3 w-3" />
+                        Known Issues:
+                      </div>
+                      <ul className="list-disc list-inside text-orange-600">
+                        {feed.issues.map((issue, i) => (
+                          <li key={i}>{issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs break-all">
                       {feed.url}
@@ -164,8 +191,9 @@ export default function RssDiscoveryPanel({ onFeedSelect }: RssDiscoveryPanelPro
                   <Button
                     onClick={() => onFeedSelect(feed.url, feed.name)}
                     size="sm"
+                    variant={feed.status === 'problematic' ? 'outline' : 'default'}
                   >
-                    Select
+                    {feed.status === 'problematic' ? 'Try Anyway' : 'Select'}
                   </Button>
                 </div>
               </div>
@@ -175,6 +203,7 @@ export default function RssDiscoveryPanel({ onFeedSelect }: RssDiscoveryPanelPro
             <p className="text-sm text-blue-700">
               <strong>Note:</strong> These are suggested feeds that may work for thrifting content. 
               We'll validate each feed when you select it to ensure it's accessible and contains valid RSS data.
+              Feeds marked as "problematic" have known issues but you can still try them.
             </p>
           </div>
         </CardContent>

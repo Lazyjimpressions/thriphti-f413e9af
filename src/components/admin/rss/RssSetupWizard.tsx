@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import RssDiscoveryPanel from "./RssDiscoveryPanel";
@@ -30,6 +29,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [config, setConfig] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [userChoice, setUserChoice] = useState<'proceed' | 'skip' | 'inactive' | null>(null);
 
   const steps = [
     { number: 1, title: "Choose RSS Feed", description: "Select or add an RSS feed source" },
@@ -42,13 +42,29 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
 
   const handleFeedSelect = (url: string, name: string) => {
     setSelectedFeed({ url, name });
+    setFeedValid(false);
+    setUserChoice(null);
     setCurrentStep(2);
   };
 
-  const handleFeedValidation = (isValid: boolean, items?: FeedItem[]) => {
+  const handleFeedValidation = (isValid: boolean, items?: FeedItem[], choice?: 'proceed' | 'skip' | 'inactive') => {
     setFeedValid(isValid);
+    setUserChoice(choice || null);
+    
     if (items) {
       setFeedItems(items);
+    }
+
+    // Handle skip choice immediately
+    if (choice === 'skip') {
+      setCurrentStep(1);
+      setSelectedFeed(null);
+      setFeedValid(false);
+      setUserChoice(null);
+      toast({
+        title: "Feed skipped",
+        description: "Please choose a different RSS feed"
+      });
     }
   };
 
@@ -61,6 +77,10 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
 
     setSaving(true);
     try {
+      // Determine if feed should be active based on validation and user choice
+      const shouldBeActive = feedValid || userChoice === 'proceed';
+      const finalActive = userChoice === 'inactive' ? false : (config.active && shouldBeActive);
+
       const { error } = await supabase
         .from('content_sources')
         .insert({
@@ -68,7 +88,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
           name: config.name,
           category: config.category,
           source_type: 'rss',
-          active: config.active,
+          active: finalActive,
           priority: config.priority,
           schedule: config.schedule,
           keywords: config.keywords.length > 0 ? config.keywords : null,
@@ -77,15 +97,21 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
           scrape_config: {
             type: 'rss',
             link_filters: config.linkFilters,
-            content_filters: config.contentFilters
+            content_filters: config.contentFilters,
+            validation_failed: !feedValid,
+            user_choice: userChoice
           }
         });
 
       if (error) throw error;
 
+      const statusMessage = finalActive 
+        ? "RSS feed source has been added and is active!"
+        : "RSS feed source has been saved as inactive";
+
       toast({
         title: "Success",
-        description: "RSS feed source has been added successfully!"
+        description: statusMessage
       });
 
       onComplete();
@@ -105,7 +131,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
   const canProceed = () => {
     switch (currentStep) {
       case 1: return selectedFeed !== null;
-      case 2: return feedValid;
+      case 2: return feedValid || userChoice === 'proceed' || userChoice === 'inactive';
       case 3: return config !== null;
       case 4: return true;
       default: return false;
@@ -122,6 +148,38 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const getStepStatus = (stepNumber: number) => {
+    if (stepNumber < currentStep) return 'completed';
+    if (stepNumber === currentStep) return 'current';
+    return 'pending';
+  };
+
+  const getStepIcon = (stepNumber: number) => {
+    const status = getStepStatus(stepNumber);
+    
+    if (status === 'completed') {
+      return <CheckCircle className="h-6 w-6 text-green-500" />;
+    }
+    
+    if (status === 'current') {
+      // Show warning if on step 2 and feed validation failed
+      if (stepNumber === 2 && !feedValid && userChoice) {
+        return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+      }
+      return (
+        <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-medium">
+          {stepNumber}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="w-6 h-6 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center text-sm font-medium">
+        {stepNumber}
+      </div>
+    );
   };
 
   return (
@@ -145,34 +203,33 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
             <Progress value={progress} className="w-full" />
             
             <div className="grid grid-cols-4 gap-4">
-              {steps.map((step) => (
-                <div
-                  key={step.number}
-                  className={`text-center p-3 rounded-lg border ${
-                    step.number === currentStep
-                      ? 'border-blue-200 bg-blue-50'
-                      : step.number < currentStep
-                      ? 'border-green-200 bg-green-50'
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-center mb-2">
-                    {step.number < currentStep ? (
-                      <CheckCircle className="h-6 w-6 text-green-500" />
-                    ) : (
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
-                        step.number === currentStep
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-300 text-gray-600'
-                      }`}>
-                        {step.number}
-                      </div>
+              {steps.map((step) => {
+                const status = getStepStatus(step.number);
+                return (
+                  <div
+                    key={step.number}
+                    className={`text-center p-3 rounded-lg border ${
+                      status === 'current'
+                        ? 'border-blue-200 bg-blue-50'
+                        : status === 'completed'
+                        ? 'border-green-200 bg-green-50'
+                        : 'border-gray-200 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center mb-2">
+                      {getStepIcon(step.number)}
+                    </div>
+                    <h4 className="font-medium text-sm">{step.title}</h4>
+                    <p className="text-xs text-gray-500 mt-1">{step.description}</p>
+                    {step.number === 2 && !feedValid && userChoice && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        {userChoice === 'proceed' && "Proceeding with invalid feed"}
+                        {userChoice === 'inactive' && "Will save as inactive"}
+                      </p>
                     )}
                   </div>
-                  <h4 className="font-medium text-sm">{step.title}</h4>
-                  <p className="text-xs text-gray-500 mt-1">{step.description}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </CardContent>
@@ -196,7 +253,8 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
           <RssConfigurationPanel
             initialConfig={{
               name: selectedFeed.name,
-              url: selectedFeed.url
+              url: selectedFeed.url,
+              active: feedValid || userChoice === 'proceed' // Default based on validation
             }}
             onConfigChange={handleConfigChange}
           />
@@ -209,15 +267,31 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-800 mb-2">
-                    <CheckCircle className="h-5 w-5" />
-                    <span className="font-medium">RSS Feed Setup Complete!</span>
+                {feedValid ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-800 mb-2">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-medium">RSS Feed Setup Complete!</span>
+                    </div>
+                    <p className="text-green-700 text-sm">
+                      Your RSS feed is configured and ready to start collecting thrifting content.
+                    </p>
                   </div>
-                  <p className="text-green-700 text-sm">
-                    Your RSS feed is configured and ready to start collecting thrifting content.
-                  </p>
-                </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-amber-800 mb-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      <span className="font-medium">
+                        {userChoice === 'proceed' && "Feed will be saved despite validation failure"}
+                        {userChoice === 'inactive' && "Feed will be saved as inactive"}
+                      </span>
+                    </div>
+                    <p className="text-amber-700 text-sm">
+                      {userChoice === 'proceed' && "The feed failed validation but you chose to proceed. You can monitor and adjust settings later."}
+                      {userChoice === 'inactive' && "The feed will be saved but not actively monitored. You can enable it later after resolving any issues."}
+                    </p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>

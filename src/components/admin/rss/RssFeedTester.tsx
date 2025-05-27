@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, XCircle, ExternalLink, Calendar, Rss, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, ExternalLink, Calendar, Rss, AlertCircle, Edit2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -18,11 +18,13 @@ interface FeedItem {
 interface RssFeedTesterProps {
   feedUrl: string;
   feedName: string;
-  onValidationComplete: (isValid: boolean, items?: FeedItem[]) => void;
+  onValidationComplete: (isValid: boolean, items?: FeedItem[], userChoice?: 'proceed' | 'skip' | 'inactive') => void;
 }
 
 export default function RssFeedTester({ feedUrl, feedName, onValidationComplete }: RssFeedTesterProps) {
   const [testing, setTesting] = useState(false);
+  const [editingUrl, setEditingUrl] = useState(false);
+  const [tempUrl, setTempUrl] = useState(feedUrl);
   const [result, setResult] = useState<{
     isValid: boolean;
     title?: string;
@@ -125,6 +127,123 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
     }
   };
 
+  const testFeedWithUrl = async (urlToTest: string) => {
+    if (!urlToTest.trim()) {
+      toast({
+        title: "Invalid URL",
+        description: "Please provide a valid RSS feed URL",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isValidUrl(urlToTest)) {
+      const errorResult = {
+        isValid: false,
+        items: [],
+        error: "Invalid URL format. Please provide a valid HTTP or HTTPS URL."
+      };
+      setResult(errorResult);
+      onValidationComplete(errorResult.isValid);
+      return;
+    }
+
+    setTesting(true);
+    setResult(null);
+
+    try {
+      console.log('Testing RSS feed:', urlToTest);
+      
+      const { data, error } = await supabase.functions.invoke('validate-rss-feed', {
+        body: { url: urlToTest }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to validate RSS feed');
+      }
+
+      console.log('RSS validation result:', data);
+
+      const testResult = {
+        isValid: data.isValid,
+        title: data.title,
+        description: data.description,
+        items: data.items || [],
+        itemCount: data.itemCount || 0,
+        error: data.error
+      };
+
+      setResult(testResult);
+      onValidationComplete(testResult.isValid, testResult.items);
+
+      if (testResult.isValid) {
+        toast({
+          title: "RSS feed validated",
+          description: `Successfully validated feed with ${testResult.itemCount} items`
+        });
+      } else {
+        toast({
+          title: "RSS feed validation failed",
+          description: testResult.error || "The RSS feed could not be validated",
+          variant: "destructive"
+        });
+      }
+
+    } catch (error: any) {
+      console.error('RSS validation error:', error);
+      const errorResult = {
+        isValid: false,
+        items: [],
+        error: error.message || "Failed to validate RSS feed. Please check the URL and try again."
+      };
+      
+      setResult(errorResult);
+      onValidationComplete(errorResult.isValid);
+
+      toast({
+        title: "Validation Error",
+        description: errorResult.error,
+        variant: "destructive"
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleTryDifferentUrl = () => {
+    setEditingUrl(true);
+    setResult(null);
+  };
+
+  const handleUrlUpdate = () => {
+    if (tempUrl !== feedUrl) {
+      // This will trigger a re-test with the new URL
+      testFeedWithUrl(tempUrl);
+    }
+    setEditingUrl(false);
+  };
+
+  const handleProceedAnyway = () => {
+    onValidationComplete(false, [], 'proceed');
+    toast({
+      title: "Proceeding with invalid feed",
+      description: "You can configure this feed even though validation failed"
+    });
+  };
+
+  const handleSaveAsInactive = () => {
+    onValidationComplete(false, [], 'inactive');
+    toast({
+      title: "Saving as inactive",
+      description: "Feed will be saved but not actively monitored"
+    });
+  };
+
+  const handleSkipFeed = () => {
+    onValidationComplete(false, [], 'skip');
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'No date';
     try {
@@ -163,7 +282,41 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Feed URL</label>
-              <p className="text-sm break-all">{feedUrl}</p>
+              {editingUrl ? (
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={tempUrl}
+                    onChange={(e) => setTempUrl(e.target.value)}
+                    placeholder="https://example.com/feed.rss"
+                    className="flex-1"
+                  />
+                  <Button onClick={handleUrlUpdate} size="sm">
+                    Update
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setEditingUrl(false);
+                      setTempUrl(feedUrl);
+                    }} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm break-all flex-1">{feedUrl}</p>
+                  <Button
+                    onClick={handleTryDifferentUrl}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Edit2 className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+              )}
               {feedUrl && !isValidUrl(feedUrl) && (
                 <div className="flex items-center gap-2 mt-1 text-amber-600">
                   <AlertCircle className="h-4 w-4" />
@@ -269,17 +422,49 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-red-700 bg-red-50 p-3 rounded">
                   <XCircle className="h-4 w-4" />
                   <span className="font-medium">RSS feed validation failed</span>
                 </div>
+                
                 {result.error && (
                   <div className="bg-red-50 border border-red-200 rounded p-3">
                     <p className="text-sm text-red-700 font-medium">Error Details:</p>
                     <p className="text-sm text-red-600 mt-1">{result.error}</p>
                   </div>
                 )}
+
+                <div className="bg-blue-50 border border-blue-200 rounded p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">What would you like to do?</h4>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleProceedAnyway}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Proceed anyway and configure this feed
+                    </Button>
+                    <Button
+                      onClick={handleSaveAsInactive}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Save as inactive (can be enabled later)
+                    </Button>
+                    <Button
+                      onClick={handleSkipFeed}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      Skip this feed and choose a different one
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="text-sm text-gray-600">
                   <p className="font-medium mb-2">Troubleshooting tips:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
@@ -290,6 +475,7 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
                     <li>Some feeds may be temporarily unavailable - try again later</li>
                   </ul>
                 </div>
+
                 {feedUrl && (
                   <div className="pt-2">
                     <Button
