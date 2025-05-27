@@ -8,8 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Rss, Plus, Trash2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Rss, Plus, Trash2, AlertTriangle, CheckCircle, XCircle, Edit, TestTube } from "lucide-react";
 import AddNewFeedPanel from "./AddNewFeedPanel";
+import RssFeedInlineEditor from "./RssFeedInlineEditor";
+import RssFeedTesterInline from "./RssFeedTesterInline";
 
 interface RssSource {
   id: string;
@@ -38,6 +40,8 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
   const [rssSources, setRssSources] = useState<RssSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingSource, setDeletingSource] = useState<string | null>(null);
+  const [editingSource, setEditingSource] = useState<string | null>(null);
+  const [testingSource, setTestingSource] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRssSources();
@@ -83,7 +87,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
         description: `"${sourceName}" has been permanently deleted`
       });
 
-      onComplete(); // Refresh parent component
+      onComplete();
 
     } catch (error: any) {
       console.error('Error deleting RSS source:', error);
@@ -108,6 +112,12 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
       return <Badge variant="secondary" className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Warning</Badge>;
     }
     return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Poor</Badge>;
+  };
+
+  const handleEditSave = () => {
+    setEditingSource(null);
+    fetchRssSources();
+    onComplete();
   };
 
   if (loading) {
@@ -167,108 +177,148 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                   </Button>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Feed</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Health</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Last Scraped</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rssSources.map((source) => (
-                      <TableRow key={source.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium flex items-center gap-2">
-                              <Rss className="h-4 w-4 text-orange-600" />
-                              {source.name}
-                            </div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">
-                              {source.url}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{source.category}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {getHealthBadge(source)}
-                            <div className="text-xs text-gray-500">
-                              {Math.round((source.success_rate || 0) * 100)}% success
-                            </div>
-                            {source.consecutive_failures > 0 && (
-                              <div className="text-xs text-red-600">
-                                {source.consecutive_failures} failures
+                <div className="space-y-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Feed</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Health</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rssSources.map((source) => (
+                        <TableRow key={source.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium flex items-center gap-2">
+                                <Rss className="h-4 w-4 text-orange-600" />
+                                {source.name}
                               </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={source.priority >= 8 ? "default" : source.priority >= 6 ? "secondary" : "outline"}>
-                            {source.priority}/10
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {source.last_scraped ? 
-                            new Date(source.last_scraped).toLocaleDateString() : 
-                            'Never'
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={source.active ? "default" : "secondary"}>
-                            {source.active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                                {source.url}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{source.category}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {getHealthBadge(source)}
+                              <div className="text-xs text-gray-500">
+                                {Math.round((source.success_rate || 0) * 100)}% success
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={source.priority >= 8 ? "default" : source.priority >= 6 ? "secondary" : "outline"}>
+                              {source.priority}/10
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={source.active ? "default" : "secondary"}>
+                              {source.active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                disabled={deletingSource === source.id}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => setEditingSource(source.id)}
+                                disabled={editingSource === source.id}
+                                title="Edit feed"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Edit className="h-3 w-3" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete RSS Feed</AlertDialogTitle>
-                                <AlertDialogDescription className="space-y-2">
-                                  <p>Are you sure you want to permanently delete this RSS feed?</p>
-                                  <div className="bg-gray-50 p-3 rounded-lg text-sm">
-                                    <p><strong>Name:</strong> {source.name}</p>
-                                    <p><strong>URL:</strong> {source.url}</p>
-                                    <p><strong>Category:</strong> {source.category}</p>
-                                    <p><strong>Success Rate:</strong> {Math.round((source.success_rate || 0) * 100)}%</p>
-                                    <p><strong>Status:</strong> {source.active ? 'Active' : 'Inactive'}</p>
-                                  </div>
-                                  <p className="text-red-600 font-medium">This action cannot be undone. All content scraped from this feed will remain, but no new content will be fetched.</p>
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteRssSource(source.id, source.name)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                  disabled={deletingSource === source.id}
-                                >
-                                  {deletingSource === source.id ? 'Deleting...' : 'Delete RSS Feed'}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setTestingSource(source.id)}
+                                disabled={testingSource === source.id}
+                                title="Test feed"
+                              >
+                                <TestTube className="h-3 w-3" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={deletingSource === source.id}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Delete feed"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete RSS Feed</AlertDialogTitle>
+                                    <AlertDialogDescription className="space-y-2">
+                                      <p>Are you sure you want to permanently delete this RSS feed?</p>
+                                      <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                                        <p><strong>Name:</strong> {source.name}</p>
+                                        <p><strong>URL:</strong> {source.url}</p>
+                                      </div>
+                                      <p className="text-red-600 font-medium">This action cannot be undone.</p>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteRssSource(source.id, source.name)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                      disabled={deletingSource === source.id}
+                                    >
+                                      {deletingSource === source.id ? 'Deleting...' : 'Delete Feed'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  {/* Inline Editor */}
+                  {editingSource && (
+                    <div className="mt-4">
+                      {rssSources
+                        .filter(source => source.id === editingSource)
+                        .map(source => (
+                          <RssFeedInlineEditor
+                            key={source.id}
+                            source={source}
+                            onSave={handleEditSave}
+                            onCancel={() => setEditingSource(null)}
+                          />
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Inline Tester */}
+                  {testingSource && (
+                    <div className="mt-4">
+                      {rssSources
+                        .filter(source => source.id === testingSource)
+                        .map(source => (
+                          <RssFeedTesterInline
+                            key={source.id}
+                            feedUrl={source.url}
+                            feedName={source.name}
+                            onClose={() => setTestingSource(null)}
+                          />
+                        ))}
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
