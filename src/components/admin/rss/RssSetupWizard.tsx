@@ -9,9 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Rss, Plus, Trash2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
-import RssDiscoveryPanel from "./RssDiscoveryPanel";
-import RssFeedTester from "./RssFeedTester";
-import RssConfigurationPanel from "./RssConfigurationPanel";
+import AddNewFeedPanel from "./AddNewFeedPanel";
 
 interface RssSource {
   id: string;
@@ -134,11 +132,9 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="existing">Existing Feeds ({rssSources.length})</TabsTrigger>
-          <TabsTrigger value="discover">Discover New</TabsTrigger>
-          <TabsTrigger value="test">Test Feed</TabsTrigger>
-          <TabsTrigger value="configure">Add Custom</TabsTrigger>
+          <TabsTrigger value="add-new">Add New Feed</TabsTrigger>
         </TabsList>
 
         <TabsContent value="existing" className="space-y-4">
@@ -147,7 +143,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
               <CardTitle className="flex items-center justify-between">
                 Current RSS Feeds
                 <Button 
-                  onClick={() => setActiveTab("discover")}
+                  onClick={() => setActiveTab("add-new")}
                   size="sm"
                   className="bg-orange-600 hover:bg-orange-700"
                 >
@@ -161,13 +157,13 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                 <div className="text-center py-8 text-gray-500">
                   <Rss className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p className="text-lg mb-2">No RSS feeds configured</p>
-                  <p className="mb-4">Get started by discovering or adding RSS feeds for local content</p>
+                  <p className="mb-4">Get started by adding RSS feeds for local content</p>
                   <Button 
-                    onClick={() => setActiveTab("discover")}
+                    onClick={() => setActiveTab("add-new")}
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Discover RSS Feeds
+                    Add RSS Feed
                   </Button>
                 </div>
               ) : (
@@ -278,29 +274,11 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
           </Card>
         </TabsContent>
 
-        <TabsContent value="discover" className="space-y-4">
-          <RssDiscoveryPanel 
+        <TabsContent value="add-new" className="space-y-4">
+          <AddNewFeedPanel 
             onFeedAdded={() => {
               fetchRssSources();
               setActiveTab("existing");
-            }}
-            onCancel={() => setActiveTab("existing")}
-          />
-        </TabsContent>
-
-        <TabsContent value="test" className="space-y-4">
-          <RssFeedTester 
-            onTestComplete={() => setActiveTab("existing")}
-            onCancel={() => setActiveTab("existing")}
-          />
-        </TabsContent>
-
-        <TabsContent value="configure" className="space-y-4">
-          <RssConfigurationPanel 
-            onComplete={() => {
-              fetchRssSources();
-              setActiveTab("existing");
-              onComplete();
             }}
             onCancel={() => setActiveTab("existing")}
           />
