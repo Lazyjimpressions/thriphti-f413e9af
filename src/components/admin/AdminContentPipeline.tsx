@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ContentSourceManager from "./ContentSourceManager";
 import SourceHealthMonitor from "./SourceHealthMonitor";
+import RssSetupWizard from "./rss/RssSetupWizard";
 
 interface ContentPipelineItem {
   id: string;
@@ -351,9 +352,10 @@ export default function AdminContentPipeline() {
       </div>
 
       <Tabs defaultValue="pipeline" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="pipeline">Pipeline Items</TabsTrigger>
           <TabsTrigger value="sources">Content Sources</TabsTrigger>
+          <TabsTrigger value="rss">RSS Management</TabsTrigger>
           <TabsTrigger value="health">Source Health</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -722,6 +724,13 @@ export default function AdminContentPipeline() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="rss" className="space-y-6">
+          <RssSetupWizard 
+            onComplete={fetchSources}
+            onCancel={() => {}}
+          />
         </TabsContent>
 
         <TabsContent value="health" className="space-y-6">
