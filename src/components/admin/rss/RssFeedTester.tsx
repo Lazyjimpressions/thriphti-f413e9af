@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, XCircle, ExternalLink, Calendar, Rss } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, ExternalLink, Calendar, Rss, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface FeedItem {
   title: string;
@@ -23,62 +25,118 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<{
     isValid: boolean;
+    title?: string;
+    description?: string;
     items: FeedItem[];
     error?: string;
+    itemCount?: number;
   } | null>(null);
 
-  const testFeed = async () => {
-    setTesting(true);
+  const isValidUrl = (url: string) => {
     try {
-      // Simulate RSS feed testing - in real implementation, this would call a backend service
-      // that can fetch and parse RSS feeds to avoid CORS issues
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const parsed = new URL(url);
+      return ['http:', 'https:'].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  };
+
+  const testFeed = async () => {
+    if (!feedUrl.trim()) {
+      toast({
+        title: "Invalid URL",
+        description: "Please provide a valid RSS feed URL",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isValidUrl(feedUrl)) {
+      const errorResult = {
+        isValid: false,
+        items: [],
+        error: "Invalid URL format. Please provide a valid HTTP or HTTPS URL."
+      };
+      setResult(errorResult);
+      onValidationComplete(errorResult.isValid);
+      return;
+    }
+
+    setTesting(true);
+    setResult(null);
+
+    try {
+      console.log('Testing RSS feed:', feedUrl);
       
-      // Mock successful response with sample items
-      const mockItems: FeedItem[] = [
-        {
-          title: "Huge Estate Sale in Highland Park - Vintage Furniture & Collectibles",
-          description: "Don't miss this amazing estate sale featuring mid-century furniture, vintage clothing, and rare collectibles. Friday-Sunday, 8am-4pm.",
-          link: "https://example.com/estate-sale-highland-park",
-          pubDate: "2024-01-15T10:00:00Z",
-          category: "Estate Sales"
-        },
-        {
-          title: "New Thrift Store Opening in Deep Ellum",
-          description: "Vintage Vibes is opening its doors this weekend with a grand opening sale. 50% off all clothing and accessories.",
-          link: "https://example.com/vintage-vibes-opening",
-          pubDate: "2024-01-14T15:30:00Z",
-          category: "Store Openings"
-        },
-        {
-          title: "Weekly Garage Sale Roundup - Best Finds Under $10",
-          description: "Our weekly roundup of the best garage sale finds for budget-conscious thrifters. This week features amazing furniture finds.",
-          link: "https://example.com/garage-sale-roundup",
-          pubDate: "2024-01-13T09:00:00Z",
-          category: "Garage Sales"
-        }
-      ];
+      const { data, error } = await supabase.functions.invoke('validate-rss-feed', {
+        body: { url: feedUrl }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to validate RSS feed');
+      }
+
+      console.log('RSS validation result:', data);
 
       const testResult = {
-        isValid: true,
-        items: mockItems
+        isValid: data.isValid,
+        title: data.title,
+        description: data.description,
+        items: data.items || [],
+        itemCount: data.itemCount || 0,
+        error: data.error
       };
 
       setResult(testResult);
       onValidationComplete(testResult.isValid, testResult.items);
 
-    } catch (error) {
+      if (testResult.isValid) {
+        toast({
+          title: "RSS feed validated",
+          description: `Successfully validated feed with ${testResult.itemCount} items`
+        });
+      } else {
+        toast({
+          title: "RSS feed validation failed",
+          description: testResult.error || "The RSS feed could not be validated",
+          variant: "destructive"
+        });
+      }
+
+    } catch (error: any) {
+      console.error('RSS validation error:', error);
       const errorResult = {
         isValid: false,
         items: [],
-        error: "Failed to fetch RSS feed. Please check the URL and try again."
+        error: error.message || "Failed to validate RSS feed. Please check the URL and try again."
       };
       
       setResult(errorResult);
       onValidationComplete(errorResult.isValid);
+
+      toast({
+        title: "Validation Error",
+        description: errorResult.error,
+        variant: "destructive"
+      });
     } finally {
       setTesting(false);
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'No date';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  const truncateText = (text: string, maxLength: number = 150) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
   return (
@@ -106,10 +164,16 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
             <div>
               <label className="text-sm font-medium text-gray-600">Feed URL</label>
               <p className="text-sm break-all">{feedUrl}</p>
+              {feedUrl && !isValidUrl(feedUrl) && (
+                <div className="flex items-center gap-2 mt-1 text-amber-600">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">Invalid URL format</span>
+                </div>
+              )}
             </div>
             <Button
               onClick={testFeed}
-              disabled={testing}
+              disabled={testing || !feedUrl.trim()}
               className="w-full"
             >
               {testing ? (
@@ -144,59 +208,100 @@ export default function RssFeedTester({ feedUrl, feedName, onValidationComplete 
                   <CheckCircle className="h-4 w-4" />
                   <span className="font-medium">RSS feed is valid and accessible!</span>
                 </div>
+
+                {result.title && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-600">Feed Title</h4>
+                    <p className="font-medium">{result.title}</p>
+                  </div>
+                )}
+
+                {result.description && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-600">Feed Description</h4>
+                    <p className="text-sm text-gray-700">{truncateText(result.description, 200)}</p>
+                  </div>
+                )}
                 
                 <div>
                   <h4 className="font-medium mb-3">Recent Feed Items ({result.items.length})</h4>
-                  <div className="space-y-3">
-                    {result.items.map((item, index) => (
-                      <div key={index} className="border rounded p-3 hover:bg-gray-50">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <h5 className="font-medium mb-1">{item.title}</h5>
-                            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(item.pubDate).toLocaleDateString()}
-                              </div>
-                              {item.category && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {item.category}
-                                </Badge>
+                  {result.items.length > 0 ? (
+                    <div className="space-y-3">
+                      {result.items.map((item, index) => (
+                        <div key={index} className="border rounded p-3 hover:bg-gray-50">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium mb-1 line-clamp-2">{item.title}</h5>
+                              {item.description && (
+                                <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+                                  {truncateText(item.description)}
+                                </p>
                               )}
+                              <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {formatDate(item.pubDate)}
+                                </div>
+                                {item.category && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {item.category}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
+                            {item.link && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(item.link, '_blank')}
+                                title="Open article"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(item.link, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 italic">No items found in this feed</p>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-red-700 bg-red-50 p-3 rounded">
                   <XCircle className="h-4 w-4" />
-                  <span className="font-medium">RSS feed test failed</span>
+                  <span className="font-medium">RSS feed validation failed</span>
                 </div>
                 {result.error && (
-                  <p className="text-sm text-gray-600">{result.error}</p>
+                  <div className="bg-red-50 border border-red-200 rounded p-3">
+                    <p className="text-sm text-red-700 font-medium">Error Details:</p>
+                    <p className="text-sm text-red-600 mt-1">{result.error}</p>
+                  </div>
                 )}
                 <div className="text-sm text-gray-600">
-                  <p className="font-medium mb-1">Troubleshooting tips:</p>
+                  <p className="font-medium mb-2">Troubleshooting tips:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li>Verify the RSS feed URL is correct and accessible</li>
-                    <li>Check if the feed requires authentication</li>
-                    <li>Ensure the feed returns valid XML format</li>
+                    <li>Check if the feed requires authentication or special headers</li>
+                    <li>Ensure the feed returns valid XML format (RSS or Atom)</li>
                     <li>Try accessing the feed directly in your browser</li>
+                    <li>Some feeds may be temporarily unavailable - try again later</li>
                   </ul>
                 </div>
+                {feedUrl && (
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(feedUrl, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Open URL in browser
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

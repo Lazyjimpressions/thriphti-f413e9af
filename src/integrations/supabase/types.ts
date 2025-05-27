@@ -363,6 +363,42 @@ export type Database = {
         }
         Relationships: []
       }
+      rss_feed_validation_cache: {
+        Row: {
+          description: string | null
+          error_message: string | null
+          feed_items: Json | null
+          id: string
+          is_valid: boolean
+          item_count: number | null
+          last_validated: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          description?: string | null
+          error_message?: string | null
+          feed_items?: Json | null
+          id?: string
+          is_valid: boolean
+          item_count?: number | null
+          last_validated?: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          description?: string | null
+          error_message?: string | null
+          feed_items?: Json | null
+          id?: string
+          is_valid?: boolean
+          item_count?: number | null
+          last_validated?: string
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
