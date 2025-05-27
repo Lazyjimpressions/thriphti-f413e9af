@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock, Settings, Database, AlertTriangle, Zap, Calendar, Globe, Mail, Rss } from "lucide-react";
+import { Play, RefreshCw, Eye, CheckCircle, XCircle, Clock, Settings, Database, AlertTriangle, Zap, Calendar, Globe, Mail, Rss, Trash2 } from "lucide-react";
 import SupabaseHealthMonitor from "@/components/SupabaseHealthMonitor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,6 +63,7 @@ export default function AdminContentPipeline() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [filterSourceType, setFilterSourceType] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [deletingSource, setDeletingSource] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPipelineData();
@@ -300,6 +302,35 @@ export default function AdminContentPipeline() {
     if (priority >= 6) return 'bg-yellow-100 text-yellow-800';
     if (priority >= 4) return 'bg-green-100 text-green-800';
     return 'bg-gray-100 text-gray-800';
+  };
+
+  const deleteSource = async (sourceId: string, sourceName: string) => {
+    setDeletingSource(sourceId);
+    try {
+      const { error } = await supabase
+        .from('content_sources')
+        .delete()
+        .eq('id', sourceId);
+
+      if (error) throw error;
+
+      setSources(prev => prev.filter(source => source.id !== sourceId));
+
+      toast({
+        title: "Source Deleted",
+        description: `"${sourceName}" has been permanently deleted`
+      });
+
+    } catch (error: any) {
+      console.error('Error deleting source:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete source",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingSource(null);
+    }
   };
 
   const filteredSources = sources.filter(source => {
@@ -716,6 +747,43 @@ export default function AdminContentPipeline() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </div>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={deletingSource === source.id}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Content Source</AlertDialogTitle>
+                                <AlertDialogDescription className="space-y-2">
+                                  <p>Are you sure you want to permanently delete this content source?</p>
+                                  <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                                    <p><strong>Name:</strong> {source.name}</p>
+                                    <p><strong>URL:</strong> {source.url}</p>
+                                    <p><strong>Type:</strong> {source.source_type}</p>
+                                    <p><strong>Status:</strong> {source.active ? 'Active' : 'Inactive'}</p>
+                                  </div>
+                                  <p className="text-red-600 font-medium">This action cannot be undone.</p>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteSource(source.id, source.name)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                  disabled={deletingSource === source.id}
+                                >
+                                  {deletingSource === source.id ? 'Deleting...' : 'Delete Source'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </TableCell>
                       </TableRow>
                     ))}
