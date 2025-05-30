@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Filter, Link, Calendar, MapPin } from "lucide-react";
+import { Settings, Filter, Link, Calendar, MapPin, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RssConfig {
   name: string;
@@ -36,12 +37,14 @@ interface RssConfigurationPanelProps {
 }
 
 const categories = [
-  { value: 'thrift_stores', label: 'Thrift Stores' },
-  { value: 'garage_sales', label: 'Garage Sales' },
-  { value: 'estate_sales', label: 'Estate Sales' },
-  { value: 'events', label: 'Events' },
-  { value: 'new_stores', label: 'New Store Openings' },
-  { value: 'neighborhood', label: 'Neighborhood News' }
+  { value: 'lifestyle_articles', label: 'Lifestyle Articles (General magazines, lifestyle blogs)' },
+  { value: 'local_news', label: 'Local News (City papers, neighborhood news)' },
+  { value: 'events_calendars', label: 'Events Calendars (General event listings)' },
+  { value: 'real_estate', label: 'Real Estate (Property listings, home sales)' },
+  { value: 'community_boards', label: 'Community Boards (Nextdoor, community forums)' },
+  { value: 'retail_blogs', label: 'Retail Blogs (Shopping, retail industry news)' },
+  { value: 'business_news', label: 'Business News (New business openings, closures)' },
+  { value: 'classified_ads', label: 'Classified Ads (Craigslist, marketplace feeds)' }
 ];
 
 const scheduleOptions = [
@@ -57,7 +60,7 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
   const [config, setConfig] = useState<RssConfig>({
     name: initialConfig.name || '',
     url: initialConfig.url || '',
-    category: initialConfig.category || 'thrift_stores',
+    category: initialConfig.category || 'lifestyle_articles',
     priority: initialConfig.priority || 5,
     schedule: initialConfig.schedule || '0 */4 * * *',
     keywords: initialConfig.keywords || [],
@@ -68,7 +71,7 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
       customRules: ''
     },
     contentFilters: {
-      minWordCount: 20,
+      minWordCount: 50,
       excludeKeywords: [],
       requireKeywords: []
     },
@@ -114,10 +117,14 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Configure RSS Feed</h3>
-        <p className="text-gray-600">
-          Set up how this RSS feed should be processed and filtered for thrifting content
-        </p>
+        <h3 className="text-lg font-semibold mb-2">Configure RSS Feed for Thrift Content Filtering</h3>
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            This system takes general RSS feeds (like D Magazine) and filters them using AI to find thrift-related content. 
+            The feed doesn't need to be thrift-specific - we'll extract relevant articles automatically.
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Basic Settings */}
@@ -125,22 +132,22 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Basic Settings
+            Source Feed Information
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Source Name</Label>
+              <Label htmlFor="name">Feed Name</Label>
               <Input
                 id="name"
                 value={config.name}
                 onChange={(e) => updateConfig({ name: e.target.value })}
-                placeholder="Dallas Thrift Store News"
+                placeholder="D Magazine RSS Feed"
               />
             </div>
             <div>
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Source Type</Label>
               <Select 
                 value={config.category} 
                 onValueChange={(value) => updateConfig({ category: value })}
@@ -159,9 +166,19 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
             </div>
           </div>
 
+          <div>
+            <Label htmlFor="url">RSS Feed URL</Label>
+            <Input
+              id="url"
+              value={config.url}
+              onChange={(e) => updateConfig({ url: e.target.value })}
+              placeholder="https://www.dmagazine.com/feed/"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="priority">Priority (1-10)</Label>
+              <Label htmlFor="priority">Processing Priority (1-10)</Label>
               <Input
                 id="priority"
                 type="number"
@@ -170,9 +187,12 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
                 value={config.priority}
                 onChange={(e) => updateConfig({ priority: parseInt(e.target.value) })}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Higher priority feeds are processed first
+              </p>
             </div>
             <div>
-              <Label htmlFor="schedule">Update Schedule</Label>
+              <Label htmlFor="schedule">Check for Updates</Label>
               <Select 
                 value={config.schedule} 
                 onValueChange={(value) => updateConfig({ schedule: value })}
@@ -202,38 +222,39 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
         </CardContent>
       </Card>
 
-      {/* Content Filtering */}
+      {/* Thrift Content Filtering */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Content Filtering
+            Thrift Content Detection
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="keywords">Include Keywords (comma-separated)</Label>
-            <Input
+            <Label htmlFor="keywords">Thrift-Related Keywords (comma-separated)</Label>
+            <Textarea
               id="keywords"
               value={config.keywords.join(', ')}
               onChange={(e) => updateKeywords(e.target.value)}
-              placeholder="thrift, vintage, garage sale, estate sale"
+              placeholder="thrift store, vintage, garage sale, estate sale, consignment, secondhand, antique, flea market, yard sale, resale"
+              rows={3}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Content must contain at least one of these keywords to be included
+              AI will look for articles containing these keywords to identify thrift-related content
             </p>
           </div>
 
           <div>
-            <Label htmlFor="requireKeywords">Required Keywords (comma-separated)</Label>
+            <Label htmlFor="requireKeywords">Must-Have Keywords (comma-separated)</Label>
             <Input
               id="requireKeywords"
               value={config.contentFilters.requireKeywords.join(', ')}
               onChange={(e) => updateRequireKeywords(e.target.value)}
-              placeholder="sale, discount, Dallas"
+              placeholder="Dallas, Texas"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Content must contain ALL of these keywords
+              Articles must contain ALL of these keywords (useful for location filtering)
             </p>
           </div>
 
@@ -243,15 +264,15 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
               id="excludeKeywords"
               value={config.contentFilters.excludeKeywords.join(', ')}
               onChange={(e) => updateExcludeKeywords(e.target.value)}
-              placeholder="spam, advertisement, promotion"
+              placeholder="advertisement, sponsored, promotion, job posting"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Content containing these keywords will be filtered out
+              Articles containing these keywords will be ignored
             </p>
           </div>
 
           <div>
-            <Label htmlFor="minWords">Minimum Word Count</Label>
+            <Label htmlFor="minWords">Minimum Article Length</Label>
             <Input
               id="minWords"
               type="number"
@@ -265,7 +286,7 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
               })}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Content must have at least this many words
+              Skip very short articles (avoids processing snippets and ads)
             </p>
           </div>
         </CardContent>
@@ -276,69 +297,21 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Geographic Targeting
+            Local Focus Areas
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div>
-            <Label htmlFor="neighborhoods">Target Neighborhoods (comma-separated)</Label>
-            <Input
+            <Label htmlFor="neighborhoods">Target Dallas Neighborhoods (comma-separated)</Label>
+            <Textarea
               id="neighborhoods"
               value={config.neighborhoods.join(', ')}
               onChange={(e) => updateNeighborhoods(e.target.value)}
-              placeholder="deep ellum, oak cliff, bishop arts, uptown"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Focus on content from these specific Dallas neighborhoods (leave empty for all areas)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Link Processing */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link className="h-5 w-5" />
-            Link Processing
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="removeParams"
-              checked={config.linkFilters.removeParams}
-              onCheckedChange={(checked) => updateConfig({
-                linkFilters: { ...config.linkFilters, removeParams: checked }
-              })}
-            />
-            <Label htmlFor="removeParams">Remove tracking parameters from URLs</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="replaceShortUrls"
-              checked={config.linkFilters.replaceShortUrls}
-              onCheckedChange={(checked) => updateConfig({
-                linkFilters: { ...config.linkFilters, replaceShortUrls: checked }
-              })}
-            />
-            <Label htmlFor="replaceShortUrls">Expand shortened URLs (bit.ly, tinyurl, etc.)</Label>
-          </div>
-
-          <div>
-            <Label htmlFor="customRules">Custom URL Processing Rules</Label>
-            <Textarea
-              id="customRules"
-              value={config.linkFilters.customRules}
-              onChange={(e) => updateConfig({
-                linkFilters: { ...config.linkFilters, customRules: e.target.value }
-              })}
-              placeholder="Enter custom regex rules for URL processing (one per line)"
+              placeholder="Deep Ellum, Oak Cliff, Bishop Arts District, Uptown, Downtown, Highland Park, University Park"
               rows={3}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Advanced: Use regex patterns to modify URLs before processing
+              Prioritize content mentioning these specific Dallas areas (leave empty to include all areas)
             </p>
           </div>
         </CardContent>
@@ -347,7 +320,7 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
       {/* Configuration Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Configuration Summary</CardTitle>
+          <CardTitle>Processing Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -356,28 +329,23 @@ export default function RssConfigurationPanel({ initialConfig, onConfigChange }:
                 {config.active ? "Active" : "Inactive"}
               </Badge>
               <Badge variant="outline">Priority {config.priority}</Badge>
-              <Badge variant="outline">{config.category.replace('_', ' ')}</Badge>
+              <Badge variant="outline">
+                {categories.find(c => c.value === config.category)?.label.split('(')[0].trim() || config.category}
+              </Badge>
             </div>
             
-            {config.keywords.length > 0 && (
-              <div>
-                <span className="text-sm font-medium">Keywords: </span>
-                <span className="text-sm text-gray-600">{config.keywords.join(', ')}</span>
-              </div>
-            )}
-            
-            {config.neighborhoods.length > 0 && (
-              <div>
-                <span className="text-sm font-medium">Neighborhoods: </span>
-                <span className="text-sm text-gray-600">{config.neighborhoods.join(', ')}</span>
-              </div>
-            )}
+            <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-2">
+              <p><strong>Process:</strong> Fetch articles from {config.name} → Filter for thrift keywords → Generate editorial content</p>
+              
+              {config.keywords.length > 0 && (
+                <p><strong>Looking for:</strong> {config.keywords.slice(0, 5).join(', ')}{config.keywords.length > 5 ? '...' : ''}</p>
+              )}
+              
+              {config.neighborhoods.length > 0 && (
+                <p><strong>Focus areas:</strong> {config.neighborhoods.slice(0, 3).join(', ')}{config.neighborhoods.length > 3 ? '...' : ''}</p>
+              )}
 
-            <div>
-              <span className="text-sm font-medium">Schedule: </span>
-              <span className="text-sm text-gray-600">
-                {scheduleOptions.find(opt => opt.value === config.schedule)?.label || config.schedule}
-              </span>
+              <p><strong>Check frequency:</strong> {scheduleOptions.find(opt => opt.value === config.schedule)?.label || config.schedule}</p>
             </div>
           </div>
         </CardContent>

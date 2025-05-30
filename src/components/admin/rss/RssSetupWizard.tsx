@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Rss, Plus, Trash2, AlertTriangle, CheckCircle, XCircle, Edit, TestTube } from "lucide-react";
+import { Rss, Plus, Trash2, AlertTriangle, CheckCircle, XCircle, Edit, TestTube, Filter } from "lucide-react";
 import AddNewFeedPanel from "./AddNewFeedPanel";
 import RssFeedInlineEditor from "./RssFeedInlineEditor";
 import RssFeedTesterInline from "./RssFeedTesterInline";
+import RssContentPreview from "./RssContentPreview";
 
 interface RssSource {
   id: string;
@@ -42,6 +42,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
   const [deletingSource, setDeletingSource] = useState<string | null>(null);
   const [editingSource, setEditingSource] = useState<string | null>(null);
   const [testingSource, setTestingSource] = useState<string | null>(null);
+  const [previewingSource, setPreviewingSource] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRssSources();
@@ -102,6 +103,15 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
   };
 
   const getHealthBadge = (source: RssSource) => {
+    if (!source.active) {
+      return <Badge variant="secondary" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Inactive</Badge>;
+    }
+    
+    // If no attempts yet, show as pending
+    if (source.total_attempts === 0) {
+      return <Badge variant="outline" className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Pending</Badge>;
+    }
+    
     if (source.consecutive_failures > 3) {
       return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Failed</Badge>;
     }
@@ -112,6 +122,27 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
       return <Badge variant="secondary" className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Warning</Badge>;
     }
     return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Poor</Badge>;
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const categoryMap: Record<string, string> = {
+      'lifestyle_articles': 'Lifestyle Articles',
+      'local_news': 'Local News', 
+      'events_calendars': 'Events Calendars',
+      'real_estate': 'Real Estate',
+      'community_boards': 'Community Boards',
+      'retail_blogs': 'Retail Blogs',
+      'business_news': 'Business News',
+      'classified_ads': 'Classified Ads',
+      // Legacy categories
+      'thrift_stores': 'Thrift Stores (Legacy)',
+      'garage_sales': 'Garage Sales (Legacy)', 
+      'estate_sales': 'Estate Sales (Legacy)',
+      'events': 'Events (Legacy)',
+      'new_stores': 'New Stores (Legacy)',
+      'neighborhood': 'Neighborhood (Legacy)'
+    };
+    return categoryMap[category] || category;
   };
 
   const handleEditSave = () => {
@@ -129,7 +160,10 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Rss className="h-6 w-6 text-orange-600" />
-          <h3 className="text-xl font-semibold">RSS Feed Management</h3>
+          <div>
+            <h3 className="text-xl font-semibold">RSS Content Sources</h3>
+            <p className="text-sm text-gray-600">General feeds filtered for thrift-related content</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -143,22 +177,22 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="existing">Existing Feeds ({rssSources.length})</TabsTrigger>
-          <TabsTrigger value="add-new">Add New Feed</TabsTrigger>
+          <TabsTrigger value="existing">Content Sources ({rssSources.length})</TabsTrigger>
+          <TabsTrigger value="add-new">Add New Source</TabsTrigger>
         </TabsList>
 
         <TabsContent value="existing" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Current RSS Feeds
+                RSS Content Sources
                 <Button 
                   onClick={() => setActiveTab("add-new")}
                   size="sm"
                   className="bg-orange-600 hover:bg-orange-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add RSS Feed
+                  Add Source
                 </Button>
               </CardTitle>
             </CardHeader>
@@ -166,14 +200,14 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
               {rssSources.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Rss className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg mb-2">No RSS feeds configured</p>
-                  <p className="mb-4">Get started by adding RSS feeds for local content</p>
+                  <p className="text-lg mb-2">No content sources configured</p>
+                  <p className="mb-4">Add RSS feeds from general publications to filter for thrift content</p>
                   <Button 
                     onClick={() => setActiveTab("add-new")}
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add RSS Feed
+                    Add RSS Source
                   </Button>
                 </div>
               ) : (
@@ -181,8 +215,8 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Feed</TableHead>
-                        <TableHead>Category</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Type</TableHead>
                         <TableHead>Health</TableHead>
                         <TableHead>Priority</TableHead>
                         <TableHead>Status</TableHead>
@@ -201,16 +235,25 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                               <div className="text-sm text-gray-500 truncate max-w-xs">
                                 {source.url}
                               </div>
+                              {source.keywords && source.keywords.length > 0 && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  Keywords: {source.keywords.slice(0, 3).join(', ')}{source.keywords.length > 3 ? '...' : ''}
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{source.category}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {getCategoryLabel(source.category)}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
                               {getHealthBadge(source)}
                               <div className="text-xs text-gray-500">
-                                {Math.round((source.success_rate || 0) * 100)}% success
+                                {source.total_attempts === 0 ? 'Not processed yet' : 
+                                  `${Math.round((source.success_rate || 0) * 100)}% success (${source.successful_attempts}/${source.total_attempts})`
+                                }
                               </div>
                             </div>
                           </TableCell>
@@ -231,7 +274,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                                 variant="outline"
                                 onClick={() => setEditingSource(source.id)}
                                 disabled={editingSource === source.id}
-                                title="Edit feed"
+                                title="Edit source"
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -240,9 +283,19 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                                 variant="outline"
                                 onClick={() => setTestingSource(source.id)}
                                 disabled={testingSource === source.id}
-                                title="Test feed"
+                                title="Test feed validation"
                               >
                                 <TestTube className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setPreviewingSource(source.id)}
+                                disabled={previewingSource === source.id}
+                                title="Preview content filtering"
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <Filter className="h-3 w-3" />
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
@@ -251,16 +304,16 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                                     variant="outline"
                                     disabled={deletingSource === source.id}
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    title="Delete feed"
+                                    title="Delete source"
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete RSS Feed</AlertDialogTitle>
+                                    <AlertDialogTitle>Delete RSS Source</AlertDialogTitle>
                                     <AlertDialogDescription className="space-y-2">
-                                      <p>Are you sure you want to permanently delete this RSS feed?</p>
+                                      <p>Are you sure you want to permanently delete this RSS source?</p>
                                       <div className="bg-gray-50 p-3 rounded-lg text-sm">
                                         <p><strong>Name:</strong> {source.name}</p>
                                         <p><strong>URL:</strong> {source.url}</p>
@@ -275,7 +328,7 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                                       className="bg-red-600 hover:bg-red-700"
                                       disabled={deletingSource === source.id}
                                     >
-                                      {deletingSource === source.id ? 'Deleting...' : 'Delete Feed'}
+                                      {deletingSource === source.id ? 'Deleting...' : 'Delete Source'}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -314,6 +367,24 @@ export default function RssSetupWizard({ onComplete, onCancel }: RssSetupWizardP
                             feedUrl={source.url}
                             feedName={source.name}
                             onClose={() => setTestingSource(null)}
+                          />
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Content Preview */}
+                  {previewingSource && (
+                    <div className="mt-4">
+                      {rssSources
+                        .filter(source => source.id === previewingSource)
+                        .map(source => (
+                          <RssContentPreview
+                            key={source.id}
+                            feedUrl={source.url}
+                            feedName={source.name}
+                            keywords={source.keywords || []}
+                            neighborhoods={source.neighborhoods || []}
+                            onClose={() => setPreviewingSource(null)}
                           />
                         ))}
                     </div>
