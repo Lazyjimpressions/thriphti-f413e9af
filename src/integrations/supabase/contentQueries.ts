@@ -177,20 +177,51 @@ export async function getContentPipelineBySource(sourceId: string): Promise<Cont
  * @returns Promise<ContentPipelineWithSource[]> Array of pipeline items with source data
  */
 export async function getContentPipelineItems(): Promise<ContentPipelineWithSource[]> {
-  const { data, error } = await supabase
+  // First, get all pipeline items
+  const { data: pipelineData, error: pipelineError } = await supabase
     .from('content_pipeline')
-    .select(`
-      *,
-      content_sources (
-        name,
-        source_type,
-        url
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) throw new Error(`Failed to fetch content pipeline items: ${error.message}`);
-  return data || [];
+  if (pipelineError) throw new Error(`Failed to fetch content pipeline items: ${pipelineError.message}`);
+
+  if (!pipelineData || pipelineData.length === 0) {
+    return [];
+  }
+
+  // Get unique source IDs
+  const sourceIds = [...new Set(pipelineData.map(item => item.source_id).filter(Boolean))] as string[];
+  
+  let sourcesMap: Record<string, Pick<ContentSource, 'name' | 'source_type' | 'url'>> = {};
+  
+  if (sourceIds.length > 0) {
+    // Fetch source information separately
+    const { data: sourcesData, error: sourcesError } = await supabase
+      .from('content_sources')
+      .select('id, name, source_type, url')
+      .in('id', sourceIds);
+
+    if (sourcesError) {
+      console.warn('Failed to fetch content sources:', sourcesError.message);
+    } else if (sourcesData) {
+      sourcesMap = sourcesData.reduce((acc, source) => {
+        acc[source.id] = {
+          name: source.name,
+          source_type: source.source_type,
+          url: source.url
+        };
+        return acc;
+      }, {} as Record<string, Pick<ContentSource, 'name' | 'source_type' | 'url'>>);
+    }
+  }
+
+  // Combine pipeline data with source information
+  const result: ContentPipelineWithSource[] = pipelineData.map(item => ({
+    ...item,
+    content_sources: item.source_id ? sourcesMap[item.source_id] || null : null
+  }));
+
+  return result;
 }
 
 /**
