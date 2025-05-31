@@ -11,6 +11,7 @@ import {
   testRSSFeed, 
   triggerSourceProcessing 
 } from "@/integrations/supabase/contentQueries";
+import { SourceSettingsModal } from "./SourceSettingsModal";
 import type { Database as DatabaseType } from "@/integrations/supabase/types";
 
 // Use the database type directly
@@ -23,6 +24,7 @@ interface SourceListProps {
 
 export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [settingsSource, setSettingsSource] = useState<ContentSource | null>(null);
   const { toast } = useToast();
 
   const setLoading = (sourceId: string, loading: boolean) => {
@@ -31,8 +33,8 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
 
   const getSourceTypeLabel = (type: string) => {
     switch (type) {
-      case 'rss_feed': return 'RSS Feed';
-      case 'email_alert': return 'Email Alert';
+      case 'rss': return 'RSS Feed';
+      case 'email': return 'Email Alert';
       case 'api': return 'API';
       case 'web_scrape': return 'Web Scrape';
       default: return type;
@@ -146,6 +148,10 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
     }
   };
 
+  const handleSettings = (source: ContentSource) => {
+    setSettingsSource(source);
+  };
+
   if (sources.length === 0) {
     return (
       <div className="text-center py-8">
@@ -215,11 +221,12 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
                   size="sm"
                   onClick={() => handleToggleActive(source.id)}
                   disabled={loadingStates[source.id]}
+                  title={source.active ? "Pause Source" : "Activate Source"}
                 >
                   {source.active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
                 
-                {source.source_type === 'rss_feed' && (
+                {source.source_type === 'rss' && (
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -241,7 +248,12 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
                   <RefreshCw className={`h-4 w-4 ${loadingStates[source.id] ? 'animate-spin' : ''}`} />
                 </Button>
                 
-                <Button variant="outline" size="sm" title="Settings">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleSettings(source)}
+                  title="Edit Settings"
+                >
                   <Settings className="h-4 w-4" />
                 </Button>
                 
@@ -259,6 +271,13 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
           </CardContent>
         </Card>
       ))}
+      
+      <SourceSettingsModal
+        source={settingsSource}
+        open={!!settingsSource}
+        onOpenChange={(open) => !open && setSettingsSource(null)}
+        onSourceUpdated={onSourceUpdated}
+      />
     </div>
   );
 }
