@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getContentPipelineItems, updatePipelineItemStatus, publishPipelineItem } from "@/integrations/supabase/contentQueries";
 import { format } from "date-fns";
+import { ContentPreviewModal } from "./ContentPreviewModal";
 
 interface ContentReviewInterfaceProps {
   onItemsUpdated?: () => void;
@@ -17,6 +17,8 @@ interface ContentReviewInterfaceProps {
 
 export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfaceProps) {
   const [selectedTab, setSelectedTab] = useState("pending");
+  const [previewItem, setPreviewItem] = useState<any>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -41,6 +43,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
       queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
       onItemsUpdated?.();
       refetch();
+      setShowPreviewModal(false);
     },
   });
 
@@ -51,6 +54,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
       queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
       onItemsUpdated?.();
       refetch();
+      setShowPreviewModal(false);
       toast({
         title: "Published Successfully",
         description: "Content has been published to the site.",
@@ -64,6 +68,11 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
       });
     },
   });
+
+  const handlePreview = (item: any) => {
+    setPreviewItem(item);
+    setShowPreviewModal(true);
+  };
 
   const handleApprove = async (id: string) => {
     try {
@@ -178,26 +187,36 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                 </TableCell>
                 {showActions && (
                   <TableCell>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePreview(item)}
+                        className="h-8 px-3 text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Preview
+                      </Button>
                       {item.status === 'pending' && (
                         <>
                           <Button
                             size="sm"
-                            variant="outline"
                             onClick={() => handleApprove(item.id)}
                             disabled={updateStatusMutation.isPending}
-                            className="h-7 px-2"
+                            className="h-8 px-3 text-xs"
                           >
-                            <CheckCircle className="h-3 w-3" />
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Approve
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="destructive"
                             onClick={() => handleReject(item.id)}
                             disabled={updateStatusMutation.isPending}
-                            className="h-7 px-2"
+                            className="h-8 px-3 text-xs"
                           >
-                            <XCircle className="h-3 w-3" />
+                            <XCircle className="h-3 w-3 mr-1" />
+                            Reject
                           </Button>
                         </>
                       )}
@@ -206,9 +225,8 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                           size="sm"
                           onClick={() => handlePublish(item.id)}
                           disabled={publishMutation.isPending}
-                          className="h-7 px-2"
+                          className="h-8 px-3 text-xs"
                         >
-                          <Eye className="h-3 w-3 mr-1" />
                           Publish
                         </Button>
                       )}
@@ -324,6 +342,16 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
           {renderContentTable(rejectedItems, false)}
         </TabsContent>
       </Tabs>
+
+      <ContentPreviewModal
+        open={showPreviewModal}
+        onOpenChange={setShowPreviewModal}
+        item={previewItem}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onPublish={handlePublish}
+        isLoading={updateStatusMutation.isPending || publishMutation.isPending}
+      />
     </div>
   );
 }
