@@ -14,11 +14,11 @@ import {
   getContentPipelineStats,
   createContentSource 
 } from "@/integrations/supabase/contentQueries";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database as DatabaseType } from "@/integrations/supabase/types";
 
 // Use the database type directly
-type ContentSource = Database['public']['Tables']['content_sources']['Row'];
-type ContentSourceInsert = Database['public']['Tables']['content_sources']['Insert'];
+type ContentSource = DatabaseType['public']['Tables']['content_sources']['Row'];
+type ContentSourceInsert = DatabaseType['public']['Tables']['content_sources']['Insert'];
 
 export default function AdminContentPipeline() {
   const [showAddModal, setShowAddModal] = useState(false);

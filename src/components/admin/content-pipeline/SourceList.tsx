@@ -11,10 +11,10 @@ import {
   testRSSFeed, 
   triggerSourceProcessing 
 } from "@/integrations/supabase/contentQueries";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database as DatabaseType } from "@/integrations/supabase/types";
 
 // Use the database type directly
-type ContentSource = Database['public']['Tables']['content_sources']['Row'];
+type ContentSource = DatabaseType['public']['Tables']['content_sources']['Row'];
 
 interface SourceListProps {
   sources: ContentSource[];
