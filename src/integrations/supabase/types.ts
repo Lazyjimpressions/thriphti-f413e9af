@@ -145,6 +145,13 @@ export type Database = {
             referencedRelation: "content_sources"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_content_pipeline_source_id"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
         ]
       }
       content_sources: {
@@ -153,6 +160,7 @@ export type Database = {
           category: string
           consecutive_failures: number | null
           created_at: string | null
+          geographic_focus: string | null
           id: string
           keywords: string[] | null
           last_error_message: string | null
@@ -175,6 +183,7 @@ export type Database = {
           category: string
           consecutive_failures?: number | null
           created_at?: string | null
+          geographic_focus?: string | null
           id?: string
           keywords?: string[] | null
           last_error_message?: string | null
@@ -197,6 +206,7 @@ export type Database = {
           category?: string
           consecutive_failures?: number | null
           created_at?: string | null
+          geographic_focus?: string | null
           id?: string
           keywords?: string[] | null
           last_error_message?: string | null
@@ -254,7 +264,11 @@ export type Database = {
       }
       events: {
         Row: {
+          ai_generated: boolean | null
+          ai_metadata: Json | null
+          auto_published: boolean | null
           category: string
+          confidence_score: number | null
           created_at: string
           description: string | null
           end_time: string | null
@@ -264,6 +278,7 @@ export type Database = {
           image_url: string | null
           location: string
           neighborhood: string | null
+          pipeline_id: string | null
           price_range: string | null
           source_url: string | null
           start_time: string | null
@@ -272,7 +287,11 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
+          auto_published?: boolean | null
           category: string
+          confidence_score?: number | null
           created_at?: string
           description?: string | null
           end_time?: string | null
@@ -282,6 +301,7 @@ export type Database = {
           image_url?: string | null
           location: string
           neighborhood?: string | null
+          pipeline_id?: string | null
           price_range?: string | null
           source_url?: string | null
           start_time?: string | null
@@ -290,7 +310,11 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
+          auto_published?: boolean | null
           category?: string
+          confidence_score?: number | null
           created_at?: string
           description?: string | null
           end_time?: string | null
@@ -300,6 +324,7 @@ export type Database = {
           image_url?: string | null
           location?: string
           neighborhood?: string | null
+          pipeline_id?: string | null
           price_range?: string | null
           source_url?: string | null
           start_time?: string | null
@@ -307,7 +332,15 @@ export type Database = {
           updated_at?: string
           venue?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "content_pipeline"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {
@@ -360,42 +393,6 @@ export type Database = {
           id?: string
           role?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      rss_feed_validation_cache: {
-        Row: {
-          description: string | null
-          error_message: string | null
-          feed_items: Json | null
-          id: string
-          is_valid: boolean
-          item_count: number | null
-          last_validated: string
-          title: string | null
-          url: string
-        }
-        Insert: {
-          description?: string | null
-          error_message?: string | null
-          feed_items?: Json | null
-          id?: string
-          is_valid: boolean
-          item_count?: number | null
-          last_validated?: string
-          title?: string | null
-          url: string
-        }
-        Update: {
-          description?: string | null
-          error_message?: string | null
-          feed_items?: Json | null
-          id?: string
-          is_valid?: boolean
-          item_count?: number | null
-          last_validated?: string
-          title?: string | null
-          url?: string
         }
         Relationships: []
       }
@@ -468,9 +465,13 @@ export type Database = {
       stores: {
         Row: {
           address: string | null
+          ai_generated: boolean | null
+          ai_metadata: Json | null
           approved: boolean | null
+          auto_published: boolean | null
           category: string[] | null
           city: string | null
+          confidence_score: number | null
           created_at: string | null
           description: string | null
           email: string | null
@@ -479,6 +480,9 @@ export type Database = {
           location: unknown | null
           name: string
           phone: string | null
+          pipeline_id: string | null
+          source_type: string | null
+          source_url: string | null
           state: string | null
           submitted_by: string | null
           website: string | null
@@ -486,9 +490,13 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
           approved?: boolean | null
+          auto_published?: boolean | null
           category?: string[] | null
           city?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -497,6 +505,9 @@ export type Database = {
           location?: unknown | null
           name: string
           phone?: string | null
+          pipeline_id?: string | null
+          source_type?: string | null
+          source_url?: string | null
           state?: string | null
           submitted_by?: string | null
           website?: string | null
@@ -504,9 +515,13 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          ai_generated?: boolean | null
+          ai_metadata?: Json | null
           approved?: boolean | null
+          auto_published?: boolean | null
           category?: string[] | null
           city?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -515,12 +530,22 @@ export type Database = {
           location?: unknown | null
           name?: string
           phone?: string | null
+          pipeline_id?: string | null
+          source_type?: string | null
+          source_url?: string | null
           state?: string | null
           submitted_by?: string | null
           website?: string | null
           zip?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stores_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "content_pipeline"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stores_submitted_by_fkey"
             columns: ["submitted_by"]
@@ -865,7 +890,11 @@ export type Database = {
           filter_date?: string
         }
         Returns: {
+          ai_generated: boolean | null
+          ai_metadata: Json | null
+          auto_published: boolean | null
           category: string
+          confidence_score: number | null
           created_at: string
           description: string | null
           end_time: string | null
@@ -875,6 +904,7 @@ export type Database = {
           image_url: string | null
           location: string
           neighborhood: string | null
+          pipeline_id: string | null
           price_range: string | null
           source_url: string | null
           start_time: string | null
@@ -1142,7 +1172,11 @@ export type Database = {
       get_featured_events: {
         Args: Record<PropertyKey, never>
         Returns: {
+          ai_generated: boolean | null
+          ai_metadata: Json | null
+          auto_published: boolean | null
           category: string
+          confidence_score: number | null
           created_at: string
           description: string | null
           end_time: string | null
@@ -1152,6 +1186,7 @@ export type Database = {
           image_url: string | null
           location: string
           neighborhood: string | null
+          pipeline_id: string | null
           price_range: string | null
           source_url: string | null
           start_time: string | null
