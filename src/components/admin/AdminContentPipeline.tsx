@@ -14,21 +14,11 @@ import {
   getContentPipelineStats,
   createContentSource 
 } from "@/integrations/supabase/contentQueries";
+import type { Database } from "@/integrations/supabase/types";
 
-// Define the source type to match the database
-interface ContentSource {
-  id: string;
-  name: string;
-  source_type: string;
-  url: string;
-  active: boolean;
-  geographic_focus: string | null;
-  keywords: string[] | null;
-  last_scraped: string | null;
-  success_rate: number;
-  last_error_message: string | null;
-  consecutive_failures: number;
-}
+// Use the database type directly
+type ContentSource = Database['public']['Tables']['content_sources']['Row'];
+type ContentSourceInsert = Database['public']['Tables']['content_sources']['Insert'];
 
 export default function AdminContentPipeline() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -62,18 +52,33 @@ export default function AdminContentPipeline() {
     });
   };
 
-  const handleSourceCreated = async (newSourceData: Omit<ContentSource, 'id' | 'active' | 'last_scraped' | 'success_rate' | 'last_error_message' | 'consecutive_failures'>) => {
+  const handleSourceCreated = async (sourceData: {
+    name: string;
+    source_type: string;
+    url: string;
+    category: string;
+    geographic_focus?: string;
+    keywords?: string[];
+  }) => {
     try {
-      await createContentSource({
-        ...newSourceData,
+      // Create the insert object matching the database schema
+      const insertData: ContentSourceInsert = {
+        name: sourceData.name,
+        source_type: sourceData.source_type,
+        url: sourceData.url,
+        category: sourceData.category,
+        geographic_focus: sourceData.geographic_focus || null,
+        keywords: sourceData.keywords || null,
         active: true,
         success_rate: 1.0,
         consecutive_failures: 0,
-      });
+      };
+      
+      await createContentSource(insertData);
       
       toast({
         title: "Source Created",
-        description: `"${newSourceData.name}" has been added successfully.`,
+        description: `"${sourceData.name}" has been added successfully.`,
       });
       
       refetchSources();

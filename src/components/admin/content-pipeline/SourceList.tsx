@@ -11,22 +11,10 @@ import {
   testRSSFeed, 
   triggerSourceProcessing 
 } from "@/integrations/supabase/contentQueries";
+import type { Database } from "@/integrations/supabase/types";
 
-interface ContentSource {
-  id: string;
-  name: string;
-  source_type: string;
-  url: string;
-  active: boolean;
-  geographic_focus: string | null;
-  keywords: string[] | null;
-  last_scraped: string | null;
-  success_rate: number;
-  items_found?: number;
-  items_processed?: number;
-  last_error_message: string | null;
-  consecutive_failures: number;
-}
+// Use the database type directly
+type ContentSource = Database['public']['Tables']['content_sources']['Row'];
 
 interface SourceListProps {
   sources: ContentSource[];
@@ -56,11 +44,11 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
       return <Badge variant="secondary">Paused</Badge>;
     }
     
-    if (source.consecutive_failures > 0) {
+    if (source.consecutive_failures && source.consecutive_failures > 0) {
       return <Badge className="bg-red-100 text-red-800">Error</Badge>;
     }
     
-    if (source.success_rate > 0.8) {
+    if (source.success_rate && source.success_rate > 0.8) {
       return <Badge className="bg-green-100 text-green-800">Active</Badge>;
     }
     
@@ -210,7 +198,7 @@ export function SourceList({ sources, onSourceUpdated }: SourceListProps) {
                       <strong>Last Scraped:</strong> {source.last_scraped ? new Date(source.last_scraped).toLocaleString() : 'Never'}
                     </p>
                     <p className="text-gray-600 mb-1">
-                      <strong>Success Rate:</strong> {Math.round((source.success_rate || 0) * 100)}%
+                      <strong>Success Rate:</strong> {Math.round((Number(source.success_rate) || 0) * 100)}%
                     </p>
                     {source.last_error_message && (
                       <p className="text-red-600 text-xs">
