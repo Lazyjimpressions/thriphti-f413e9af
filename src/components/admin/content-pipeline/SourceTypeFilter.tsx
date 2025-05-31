@@ -11,10 +11,10 @@ interface SourceTypeFilterProps {
 
 export function SourceTypeFilter({ selectedTypes, onTypesChange, sourceCounts }: SourceTypeFilterProps) {
   const sourceTypes = [
-    { value: 'rss_feed', label: 'RSS Feed', icon: Rss },
+    { value: 'rss', label: 'RSS Feed', icon: Rss },
     { value: 'web_scrape', label: 'Web Scrape', icon: Globe },
     { value: 'api', label: 'API', icon: Zap },
-    { value: 'email_alert', label: 'Email Alert', icon: Mail },
+    { value: 'email', label: 'Email Alert', icon: Mail },
   ];
 
   return (
