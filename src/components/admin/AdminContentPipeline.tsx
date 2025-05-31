@@ -1,12 +1,16 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Database, Settings, RefreshCw } from "lucide-react";
+import { Database, Settings, RefreshCw, Plus } from "lucide-react";
+import { AddSourceModal } from "./content-pipeline/AddSourceModal";
+import { SourceList } from "./content-pipeline/SourceList";
 
 export default function AdminContentPipeline() {
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -34,13 +38,14 @@ export default function AdminContentPipeline() {
         </Button>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+      <Tabs defaultValue="sources" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="sources">Content Sources</TabsTrigger>
+          <TabsTrigger value="pipeline">Processing Pipeline</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="sources" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-2">
@@ -64,30 +69,44 @@ export default function AdminContentPipeline() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600">Articles Today</CardTitle>
+                <CardTitle className="text-sm text-gray-600">Items Today</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">0</div>
-                <p className="text-sm text-gray-500 mt-1">No articles processed</p>
+                <p className="text-sm text-gray-500 mt-1">No items processed</p>
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Content Sources
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Content Sources
+                </CardTitle>
+                <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Source
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SourceList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pipeline" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Content Processing Pipeline</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Database className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Content Sources</h3>
-                <p className="text-gray-500 mb-4">
-                  Get started by adding your first content source to begin processing articles.
-                </p>
-                <Button>Add First Source</Button>
+                <div className="text-gray-400 mb-4">
+                  Pipeline monitoring will appear here once sources are configured
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -98,7 +117,7 @@ export default function AdminContentPipeline() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Pipeline Settings
+                AI Processing Settings
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -106,23 +125,23 @@ export default function AdminContentPipeline() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">Auto Processing</h4>
-                    <p className="text-sm text-gray-500">Automatically process new content</p>
+                    <p className="text-sm text-gray-500">Automatically process new content with AI</p>
                   </div>
                   <Badge variant="secondary">Disabled</Badge>
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">Content Filtering</h4>
-                    <p className="text-sm text-gray-500">Filter content for thrift-related topics</p>
+                    <h4 className="font-medium">Dallas Area Filtering</h4>
+                    <p className="text-sm text-gray-500">Filter content for Dallas-Fort Worth area only</p>
                   </div>
                   <Badge variant="secondary">Not Configured</Badge>
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">Notifications</h4>
-                    <p className="text-sm text-gray-500">Get notified of processing events</p>
+                    <h4 className="font-medium">Thrift Content Detection</h4>
+                    <p className="text-sm text-gray-500">AI detection for thrift-related content</p>
                   </div>
                   <Badge variant="secondary">Disabled</Badge>
                 </div>
@@ -131,6 +150,11 @@ export default function AdminContentPipeline() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddSourceModal 
+        open={showAddModal} 
+        onOpenChange={setShowAddModal}
+      />
     </div>
   );
 }
