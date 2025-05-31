@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -57,7 +56,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
         name: formData.name,
         source_type: formData.source_type,
         url: formData.url,
-        category: formData.category || null,
+        category: formData.category || "mixed", // Default to "mixed" if empty
         geographic_focus: formData.geographic_focus || null,
         keywords: formData.keywords.length > 0 ? formData.keywords : null,
       });
@@ -156,7 +155,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category (Optional)</Label>
+              <Label htmlFor="category">Category</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -221,7 +220,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
             </Button>
             <Button 
               type="submit" 
-              disabled={!formData.name || !formData.source_type || !formData.url || isLoading}
+              disabled={!formData.name || !formData.source_type || !formData.url || !formData.category || isLoading}
             >
               {isLoading ? "Updating..." : "Update Source"}
             </Button>
