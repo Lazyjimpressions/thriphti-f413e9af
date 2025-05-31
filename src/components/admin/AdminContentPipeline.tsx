@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Database, Settings, RefreshCw, Plus } from "lucide-react";
 import { AddSourceModal } from "./content-pipeline/AddSourceModal";
 import { SourceList } from "./content-pipeline/SourceList";
+import { SourceTypeFilter } from "./content-pipeline/SourceTypeFilter";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -22,6 +22,7 @@ type ContentSourceInsert = DatabaseType['public']['Tables']['content_sources']['
 
 export default function AdminContentPipeline() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedSourceTypes, setSelectedSourceTypes] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch content sources
@@ -42,6 +43,22 @@ export default function AdminContentPipeline() {
     queryKey: ['content-pipeline-stats'],
     queryFn: getContentPipelineStats,
   });
+
+  // Calculate source counts by type
+  const sourceCounts = useMemo(() => {
+    return sources.reduce((counts, source) => {
+      counts[source.source_type] = (counts[source.source_type] || 0) + 1;
+      return counts;
+    }, {} as Record<string, number>);
+  }, [sources]);
+
+  // Filter sources based on selected types
+  const filteredSources = useMemo(() => {
+    if (selectedSourceTypes.length === 0) {
+      return sources;
+    }
+    return sources.filter(source => selectedSourceTypes.includes(source.source_type));
+  }, [sources, selectedSourceTypes]);
 
   const handleRefresh = () => {
     refetchSources();
@@ -174,14 +191,22 @@ export default function AdminContentPipeline() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {sources.length > 0 && (
+                <SourceTypeFilter
+                  selectedTypes={selectedSourceTypes}
+                  onTypesChange={setSelectedSourceTypes}
+                  sourceCounts={sourceCounts}
+                />
+              )}
+              
               {sourcesLoading ? (
                 <div className="text-center py-8">
                   <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-500">Loading sources...</p>
                 </div>
               ) : (
-                <SourceList sources={sources} onSourceUpdated={refetchSources} />
+                <SourceList sources={filteredSources} onSourceUpdated={refetchSources} />
               )}
             </CardContent>
           </Card>
