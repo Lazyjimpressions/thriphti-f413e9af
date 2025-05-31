@@ -156,7 +156,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Category (Optional)</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -171,7 +171,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="geographic_focus">Geographic Focus</Label>
+              <Label htmlFor="geographic_focus">Geographic Focus (Optional)</Label>
               <Input
                 id="geographic_focus"
                 value={formData.geographic_focus}
@@ -182,7 +182,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="keywords">Keywords</Label>
+            <Label htmlFor="keywords">Keywords (Optional)</Label>
             <div className="flex gap-2">
               <Input
                 id="keywords"
@@ -221,7 +221,7 @@ export function SourceSettingsModal({ source, open, onOpenChange, onSourceUpdate
             </Button>
             <Button 
               type="submit" 
-              disabled={!formData.name || !formData.source_type || !formData.url || !formData.category || isLoading}
+              disabled={!formData.name || !formData.source_type || !formData.url || isLoading}
             >
               {isLoading ? "Updating..." : "Update Source"}
             </Button>
