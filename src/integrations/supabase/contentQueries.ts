@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import type { Database } from './types';
 
@@ -25,6 +24,11 @@ interface RawData {
   description?: string;
   location?: string;
 }
+
+// Type for pipeline items with source info
+type ContentPipelineWithSource = ContentPipeline & {
+  content_sources?: Pick<ContentSource, 'name' | 'source_type' | 'url'> | null;
+};
 
 /**
  * Fetches all content sources
@@ -170,9 +174,9 @@ export async function getContentPipelineBySource(sourceId: string): Promise<Cont
 
 /**
  * Gets all content pipeline items with source information
- * @returns Promise<ContentPipeline[]> Array of pipeline items with source data
+ * @returns Promise<ContentPipelineWithSource[]> Array of pipeline items with source data
  */
-export async function getContentPipelineItems(): Promise<(ContentPipeline & { content_sources?: ContentSource })[]> {
+export async function getContentPipelineItems(): Promise<ContentPipelineWithSource[]> {
   const { data, error } = await supabase
     .from('content_pipeline')
     .select(`
