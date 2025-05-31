@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import type { Database } from './types';
 
@@ -279,7 +280,6 @@ export async function publishPipelineItem(id: string): Promise<void> {
       neighborhood: extractNeighborhood(processedData.location || ''),
       price_range: extractPriceRange(processedData.actionable_details || ''),
       featured: false,
-      organizer: 'Community Event',
       source_url: rawData?.url || null
     };
 
@@ -292,7 +292,7 @@ export async function publishPipelineItem(id: string): Promise<void> {
     // Publish as an article
     const articleData = {
       title: processedData.title || 'Untitled Article',
-      content: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
+      body: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
       excerpt: (processedData.description || '').substring(0, 200),
       slug: generateSlug(processedData.title || 'untitled'),
       category: 'news',
