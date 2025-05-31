@@ -8,6 +8,24 @@ type ContentSourceInsert = Database['public']['Tables']['content_sources']['Inse
 type ContentSourceUpdate = Database['public']['Tables']['content_sources']['Update'];
 type ContentPipeline = Database['public']['Tables']['content_pipeline']['Row'];
 
+// Type for processed data structure
+interface ProcessedData {
+  title?: string;
+  description?: string;
+  location?: string;
+  category?: string;
+  date?: string;
+  actionable_details?: string;
+}
+
+// Type for raw data structure  
+interface RawData {
+  url?: string;
+  title?: string;
+  description?: string;
+  location?: string;
+}
+
 /**
  * Fetches all content sources
  * @returns Promise<ContentSource[]> Array of content sources
@@ -204,7 +222,9 @@ export async function publishPipelineItem(id: string): Promise<void> {
 
   if (fetchError) throw new Error(`Failed to fetch pipeline item: ${fetchError.message}`);
 
-  const processedData = pipelineItem.processed_data;
+  const processedData = pipelineItem.processed_data as ProcessedData;
+  const rawData = pipelineItem.raw_data as RawData;
+  
   if (!processedData) throw new Error('No processed data found for this item');
 
   // Determine the content type and publish accordingly
@@ -213,8 +233,8 @@ export async function publishPipelineItem(id: string): Promise<void> {
   if (category === 'garage_sale' || category === 'estate_sale' || category === 'flea_market') {
     // Publish as an event
     const eventData = {
-      title: processedData.title,
-      description: processedData.description,
+      title: processedData.title || 'Untitled Event',
+      description: processedData.description || '',
       location: processedData.location || 'Dallas, TX',
       venue: processedData.location || 'Dallas, TX',
       event_date: processedData.date || new Date().toISOString().split('T')[0],
@@ -225,7 +245,7 @@ export async function publishPipelineItem(id: string): Promise<void> {
       price_range: extractPriceRange(processedData.actionable_details || ''),
       featured: false,
       organizer: 'Community Event',
-      source_url: pipelineItem.raw_data?.url || null
+      source_url: rawData?.url || null
     };
 
     const { error: eventError } = await supabase
@@ -236,16 +256,16 @@ export async function publishPipelineItem(id: string): Promise<void> {
   } else {
     // Publish as an article
     const articleData = {
-      title: processedData.title,
-      content: `${processedData.description}\n\n${processedData.actionable_details}`,
-      excerpt: processedData.description.substring(0, 200),
-      slug: generateSlug(processedData.title),
+      title: processedData.title || 'Untitled Article',
+      content: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
+      excerpt: (processedData.description || '').substring(0, 200),
+      slug: generateSlug(processedData.title || 'untitled'),
       category: 'news',
       tags: [category],
       featured: false,
       published_at: new Date().toISOString(),
       author: 'Thriphti Team',
-      source_url: pipelineItem.raw_data?.url || null
+      source_url: rawData?.url || null
     };
 
     const { error: articleError } = await supabase
