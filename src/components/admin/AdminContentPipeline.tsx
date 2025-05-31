@@ -8,14 +8,58 @@ import { Database, Settings, RefreshCw, Plus } from "lucide-react";
 import { AddSourceModal } from "./content-pipeline/AddSourceModal";
 import { SourceList } from "./content-pipeline/SourceList";
 
+// Define the source type
+interface ContentSource {
+  id: number;
+  name: string;
+  type: string;
+  url: string;
+  active: boolean;
+  geographic_focus: string;
+  keywords: string;
+  last_checked: string;
+  status: string;
+  items_found: number;
+  items_processed: number;
+}
+
 export default function AdminContentPipeline() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [sources, setSources] = useState<ContentSource[]>([
+    {
+      id: 1,
+      name: "D Magazine Events Feed",
+      type: "rss_feed",
+      url: "https://example.com/rss",
+      active: true,
+      geographic_focus: "Dallas, Deep Ellum",
+      keywords: "thrift, vintage, estate sale",
+      last_checked: "2024-01-19T10:30:00Z",
+      status: "success",
+      items_found: 12,
+      items_processed: 8
+    }
+  ]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     // Placeholder for refresh functionality
     setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const handleSourceCreated = (newSourceData: Omit<ContentSource, 'id' | 'active' | 'last_checked' | 'status' | 'items_found' | 'items_processed'>) => {
+    const newSource: ContentSource = {
+      ...newSourceData,
+      id: Date.now(), // Simple ID generation for now
+      active: true,
+      last_checked: new Date().toISOString(),
+      status: "success",
+      items_found: 0,
+      items_processed: 0
+    };
+    
+    setSources(prevSources => [...prevSources, newSource]);
   };
 
   return (
@@ -52,8 +96,10 @@ export default function AdminContentPipeline() {
                 <CardTitle className="text-sm text-gray-600">Total Sources</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-sm text-gray-500 mt-1">No sources configured</p>
+                <div className="text-2xl font-bold">{sources.length}</div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {sources.length === 0 ? 'No sources configured' : `${sources.length} source${sources.length === 1 ? '' : 's'} configured`}
+                </p>
               </CardContent>
             </Card>
 
@@ -62,8 +108,10 @@ export default function AdminContentPipeline() {
                 <CardTitle className="text-sm text-gray-600">Active Sources</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-sm text-gray-500 mt-1">No active sources</p>
+                <div className="text-2xl font-bold">{sources.filter(s => s.active).length}</div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {sources.filter(s => s.active).length === 0 ? 'No active sources' : 'Currently processing'}
+                </p>
               </CardContent>
             </Card>
 
@@ -72,8 +120,10 @@ export default function AdminContentPipeline() {
                 <CardTitle className="text-sm text-gray-600">Items Today</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-sm text-gray-500 mt-1">No items processed</p>
+                <div className="text-2xl font-bold">{sources.reduce((total, s) => total + s.items_processed, 0)}</div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {sources.reduce((total, s) => total + s.items_processed, 0) === 0 ? 'No items processed' : 'Items processed today'}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -92,7 +142,7 @@ export default function AdminContentPipeline() {
               </div>
             </CardHeader>
             <CardContent>
-              <SourceList />
+              <SourceList sources={sources} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -154,6 +204,7 @@ export default function AdminContentPipeline() {
       <AddSourceModal 
         open={showAddModal} 
         onOpenChange={setShowAddModal}
+        onSourceCreated={handleSourceCreated}
       />
     </div>
   );

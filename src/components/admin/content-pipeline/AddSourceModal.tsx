@@ -13,9 +13,16 @@ import { toast } from "sonner";
 interface AddSourceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSourceCreated: (sourceData: {
+    name: string;
+    type: string;
+    url: string;
+    geographic_focus: string;
+    keywords: string;
+  }) => void;
 }
 
-export function AddSourceModal({ open, onOpenChange }: AddSourceModalProps) {
+export function AddSourceModal({ open, onOpenChange, onSourceCreated }: AddSourceModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -67,8 +74,8 @@ export function AddSourceModal({ open, onOpenChange }: AddSourceModalProps) {
       return;
     }
 
-    // Here we would save to the database
-    console.log("Creating source:", formData);
+    // Call the callback to add the source to the parent state
+    onSourceCreated(formData);
     toast.success("Content source created successfully!");
     
     // Reset form and close modal

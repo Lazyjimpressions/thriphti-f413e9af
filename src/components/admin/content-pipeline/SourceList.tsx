@@ -1,30 +1,28 @@
 
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Database, ExternalLink, Settings, Trash2, Play, Pause } from "lucide-react";
 
-// Mock data for now - this would come from the database
-const mockSources = [
-  {
-    id: 1,
-    name: "D Magazine Events Feed",
-    type: "rss_feed",
-    url: "https://example.com/rss",
-    active: true,
-    geographic_focus: "Dallas, Deep Ellum",
-    keywords: "thrift, vintage, estate sale",
-    last_checked: "2024-01-19T10:30:00Z",
-    status: "success",
-    items_found: 12,
-    items_processed: 8
-  }
-];
+interface ContentSource {
+  id: number;
+  name: string;
+  type: string;
+  url: string;
+  active: boolean;
+  geographic_focus: string;
+  keywords: string;
+  last_checked: string;
+  status: string;
+  items_found: number;
+  items_processed: number;
+}
 
-export function SourceList() {
-  const [sources] = useState(mockSources);
+interface SourceListProps {
+  sources: ContentSource[];
+}
 
+export function SourceList({ sources }: SourceListProps) {
   const getSourceTypeLabel = (type: string) => {
     switch (type) {
       case 'rss_feed': return 'RSS Feed';
