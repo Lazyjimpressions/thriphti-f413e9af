@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -108,10 +107,10 @@ export function AddSourceModal({ open, onOpenChange, onSourceCreated }: AddSourc
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rss_feed">RSS Feed</SelectItem>
+                  <SelectItem value="rss">RSS Feed</SelectItem>
                   <SelectItem value="web_scrape">Web Scrape</SelectItem>
                   <SelectItem value="api">API</SelectItem>
-                  <SelectItem value="email_alert">Email Alert</SelectItem>
+                  <SelectItem value="email">Email Alert</SelectItem>
                 </SelectContent>
               </Select>
             </div>
