@@ -151,6 +151,120 @@ export async function getContentPipelineBySource(sourceId: string): Promise<Cont
 }
 
 /**
+ * Gets all content pipeline items with source information
+ * @returns Promise<ContentPipeline[]> Array of pipeline items with source data
+ */
+export async function getContentPipelineItems(): Promise<(ContentPipeline & { content_sources?: ContentSource })[]> {
+  const { data, error } = await supabase
+    .from('content_pipeline')
+    .select(`
+      *,
+      content_sources (
+        name,
+        source_type,
+        url
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(`Failed to fetch content pipeline items: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Updates the status of a pipeline item
+ * @param id - The ID of the pipeline item
+ * @param status - The new status
+ * @returns Promise<ContentPipeline> The updated item
+ */
+export async function updatePipelineItemStatus(id: string, status: string): Promise<ContentPipeline> {
+  const { data, error } = await supabase
+    .from('content_pipeline')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update pipeline item status: ${error.message}`);
+  return data;
+}
+
+/**
+ * Publishes a pipeline item to the main content tables
+ * @param id - The ID of the pipeline item to publish
+ * @returns Promise<void>
+ */
+export async function publishPipelineItem(id: string): Promise<void> {
+  // Get the pipeline item
+  const { data: pipelineItem, error: fetchError } = await supabase
+    .from('content_pipeline')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) throw new Error(`Failed to fetch pipeline item: ${fetchError.message}`);
+
+  const processedData = pipelineItem.processed_data;
+  if (!processedData) throw new Error('No processed data found for this item');
+
+  // Determine the content type and publish accordingly
+  const category = processedData.category || pipelineItem.content_type;
+  
+  if (category === 'garage_sale' || category === 'estate_sale' || category === 'flea_market') {
+    // Publish as an event
+    const eventData = {
+      title: processedData.title,
+      description: processedData.description,
+      location: processedData.location || 'Dallas, TX',
+      venue: processedData.location || 'Dallas, TX',
+      event_date: processedData.date || new Date().toISOString().split('T')[0],
+      start_time: '09:00',
+      end_time: '17:00',
+      category: category,
+      neighborhood: extractNeighborhood(processedData.location || ''),
+      price_range: extractPriceRange(processedData.actionable_details || ''),
+      featured: false,
+      organizer: 'Community Event',
+      source_url: pipelineItem.raw_data?.url || null
+    };
+
+    const { error: eventError } = await supabase
+      .from('events')
+      .insert(eventData);
+
+    if (eventError) throw new Error(`Failed to publish event: ${eventError.message}`);
+  } else {
+    // Publish as an article
+    const articleData = {
+      title: processedData.title,
+      content: `${processedData.description}\n\n${processedData.actionable_details}`,
+      excerpt: processedData.description.substring(0, 200),
+      slug: generateSlug(processedData.title),
+      category: 'news',
+      tags: [category],
+      featured: false,
+      published_at: new Date().toISOString(),
+      author: 'Thriphti Team',
+      source_url: pipelineItem.raw_data?.url || null
+    };
+
+    const { error: articleError } = await supabase
+      .from('articles')
+      .insert(articleData);
+
+    if (articleError) throw new Error(`Failed to publish article: ${articleError.message}`);
+  }
+
+  // Update pipeline item status to published
+  const { error: updateError } = await supabase
+    .from('content_pipeline')
+    .update({ status: 'published' })
+    .eq('id', id);
+
+  if (updateError) throw new Error(`Failed to update pipeline item to published: ${updateError.message}`);
+}
+
+/**
  * Gets overall content pipeline statistics
  * @returns Promise<{total: number, pending: number, processed: number, published: number}>
  */
@@ -183,4 +297,37 @@ export async function getContentPipelineStats(): Promise<{
   }, { total: 0, pending: 0, processed: 0, published: 0 }) || { total: 0, pending: 0, processed: 0, published: 0 };
 
   return stats;
+}
+
+// Helper functions for publishing
+function extractNeighborhood(location: string): string {
+  const neighborhoods = [
+    'Downtown', 'Deep Ellum', 'Bishop Arts', 'Uptown', 'Oak Cliff', 
+    'Trinity Groves', 'Design District', 'Highland Park', 'University Park'
+  ];
+  
+  for (const neighborhood of neighborhoods) {
+    if (location.toLowerCase().includes(neighborhood.toLowerCase())) {
+      return neighborhood;
+    }
+  }
+  return 'Other';
+}
+
+function extractPriceRange(details: string): string {
+  if (details.toLowerCase().includes('free')) return 'free';
+  if (details.toLowerCase().includes('$1') || details.toLowerCase().includes('under $5')) return 'under-5';
+  if (details.toLowerCase().includes('$5') || details.toLowerCase().includes('$10')) return '5-15';
+  if (details.toLowerCase().includes('$15') || details.toLowerCase().includes('$25')) return '15-25';
+  return 'varies';
+}
+
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+    + '-' + Date.now().toString().slice(-6);
 }

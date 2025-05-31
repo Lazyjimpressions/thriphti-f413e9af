@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +8,7 @@ import { Database, Settings, RefreshCw, Plus } from "lucide-react";
 import { AddSourceModal } from "./content-pipeline/AddSourceModal";
 import { SourceList } from "./content-pipeline/SourceList";
 import { SourceTypeFilter } from "./content-pipeline/SourceTypeFilter";
+import { ContentReviewInterface } from "./content-pipeline/ContentReviewInterface";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -132,12 +134,23 @@ export default function AdminContentPipeline() {
         </Button>
       </div>
 
-      <Tabs defaultValue="sources" className="space-y-6">
+      <Tabs defaultValue="pipeline" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="pipeline">Content Review</TabsTrigger>
           <TabsTrigger value="sources">Content Sources</TabsTrigger>
-          <TabsTrigger value="pipeline">Processing Pipeline</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="pipeline" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Content Review & Publishing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ContentReviewInterface onItemsUpdated={refetchStats} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="sources" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
