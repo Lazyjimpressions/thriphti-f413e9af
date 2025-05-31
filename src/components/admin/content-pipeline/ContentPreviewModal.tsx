@@ -19,6 +19,41 @@ interface ContentPreviewModalProps {
   isLoading: boolean;
 }
 
+// Helper function to extract image from various data sources
+function extractImageUrl(processedData: any, rawData: any): string | null {
+  // Check multiple possible image field names
+  const imageFields = ['image_url', 'image', 'imageUrl', 'img', 'picture', 'photo'];
+  
+  // First check processed data
+  for (const field of imageFields) {
+    if (processedData?.[field]) {
+      return processedData[field];
+    }
+  }
+  
+  // Then check raw data
+  for (const field of imageFields) {
+    if (rawData?.[field]) {
+      return rawData[field];
+    }
+  }
+  
+  return null;
+}
+
+// Custom EventCard wrapper that disables navigation in preview mode
+function PreviewEventCard({ event }: { event: any }) {
+  return (
+    <div className="relative">
+      <EventCard event={event} onSelect={() => {}} />
+      <div className="absolute inset-0 bg-transparent cursor-default" />
+      <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
+        Preview Mode
+      </div>
+    </div>
+  );
+}
+
 export function ContentPreviewModal({ 
   open, 
   onOpenChange, 
@@ -32,6 +67,9 @@ export function ContentPreviewModal({
 
   const processedData = item.processed_data || {};
   const rawData = item.raw_data || {};
+  
+  // Extract image with better fallback logic
+  const imageUrl = extractImageUrl(processedData, rawData);
   
   // Create a mock event/article object for preview
   const previewContent = {
@@ -48,7 +86,7 @@ export function ContentPreviewModal({
     price_range: 'varies',
     featured: false,
     organizer: 'Community Event',
-    image_url: '/placeholder.svg'
+    image_url: imageUrl || '/placeholder.svg'
   };
 
   const isEvent = ['garage_sale', 'estate_sale', 'flea_market'].includes(previewContent.category);
@@ -114,28 +152,50 @@ export function ContentPreviewModal({
                 <h3 className="text-lg font-medium mb-4">How this will appear on the site:</h3>
                 <div className="max-w-sm">
                   {isEvent ? (
-                    <EventCard event={previewContent} />
+                    <PreviewEventCard event={previewContent} />
                   ) : (
-                    <Card className="overflow-hidden">
-                      <div className="relative w-full h-48 bg-gray-200">
-                        <div className="absolute top-4 left-4">
-                          <Badge variant="secondary">
-                            {previewContent.category}
-                          </Badge>
+                    <div className="relative">
+                      <Card className="overflow-hidden">
+                        <div className="relative w-full h-48 bg-gray-200">
+                          {imageUrl ? (
+                            <img 
+                              src={imageUrl} 
+                              alt={previewContent.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-500 text-sm">No image available</span>
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4">
+                            <Badge variant="secondary">
+                              {previewContent.category}
+                            </Badge>
+                          </div>
                         </div>
+                        <CardHeader className="pb-2">
+                          <h3 className="font-serif text-xl text-gray-900 line-clamp-2">
+                            {previewContent.title}
+                          </h3>
+                        </CardHeader>
+                        <CardContent className="pb-4">
+                          <p className="text-gray-600 text-sm line-clamp-3">
+                            {previewContent.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
+                        Preview Mode
                       </div>
-                      <CardHeader className="pb-2">
-                        <h3 className="font-serif text-xl text-gray-900 line-clamp-2">
-                          {previewContent.title}
-                        </h3>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <p className="text-gray-600 text-sm line-clamp-3">
-                          {previewContent.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    </div>
                   )}
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded text-sm text-blue-800">
+                  <strong>Note:</strong> This is a preview of unpublished content. The "View Details" button will work after publishing.
                 </div>
               </div>
 
@@ -170,6 +230,12 @@ export function ContentPreviewModal({
                       </a>
                     </div>
                   )}
+                  {imageUrl && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Image URL:</span>
+                      <span className="text-xs text-gray-500 break-all">{imageUrl}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -180,16 +246,20 @@ export function ContentPreviewModal({
                   <CardTitle className="text-sm">AI Processed Data</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {Object.entries(processedData).map(([key, value]) => (
-                    <div key={key} className="border-b pb-2">
-                      <div className="text-sm font-medium text-gray-600 capitalize">
-                        {key.replace(/_/g, ' ')}
+                  {Object.entries(processedData).length === 0 ? (
+                    <div className="text-gray-500 text-sm">No processed data available</div>
+                  ) : (
+                    Object.entries(processedData).map(([key, value]) => (
+                      <div key={key} className="border-b pb-2">
+                        <div className="text-sm font-medium text-gray-600 capitalize">
+                          {key.replace(/_/g, ' ')}
+                        </div>
+                        <div className="text-sm mt-1">
+                          {typeof value === 'string' ? value : JSON.stringify(value)}
+                        </div>
                       </div>
-                      <div className="text-sm mt-1">
-                        {typeof value === 'string' ? value : JSON.stringify(value)}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -200,16 +270,20 @@ export function ContentPreviewModal({
                   <CardTitle className="text-sm">Original Raw Data</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {Object.entries(rawData).map(([key, value]) => (
-                    <div key={key} className="border-b pb-2">
-                      <div className="text-sm font-medium text-gray-600 capitalize">
-                        {key.replace(/_/g, ' ')}
+                  {Object.entries(rawData).length === 0 ? (
+                    <div className="text-gray-500 text-sm">No raw data available</div>
+                  ) : (
+                    Object.entries(rawData).map(([key, value]) => (
+                      <div key={key} className="border-b pb-2">
+                        <div className="text-sm font-medium text-gray-600 capitalize">
+                          {key.replace(/_/g, ' ')}
+                        </div>
+                        <div className="text-sm mt-1 break-all">
+                          {typeof value === 'string' ? value : JSON.stringify(value)}
+                        </div>
                       </div>
-                      <div className="text-sm mt-1 break-all">
-                        {typeof value === 'string' ? value : JSON.stringify(value)}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
