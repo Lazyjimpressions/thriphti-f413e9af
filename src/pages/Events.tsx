@@ -25,7 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 export type TimeRange = 'this-weekend' | 'next-week' | 'this-month' | 'all-upcoming';
 
 export default function Events() {
-  const [activeFilters, setActiveFilters] = useState<string[]>(["Vintage", "North Dallas"]);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('this-weekend');

@@ -17,12 +17,12 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
-interface ThisWeekendFilterProps {
+interface EventsFilterProps {
   activeFilters: string[];
   setActiveFilters: (filters: string[]) => void;
 }
 
-export default function ThisWeekendFilter({ activeFilters, setActiveFilters }: ThisWeekendFilterProps) {
+export default function EventsFilter({ activeFilters, setActiveFilters }: EventsFilterProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [date, setDate] = useState<Date | undefined>(undefined);
   
