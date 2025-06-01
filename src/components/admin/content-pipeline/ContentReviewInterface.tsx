@@ -26,6 +26,24 @@ interface ContentReviewInterfaceProps {
   onItemsUpdated?: () => void;
 }
 
+// Type helper for processed data
+interface ProcessedData {
+  title?: string;
+  description?: string;
+  location?: string;
+  category?: string;
+  date?: string;
+  actionable_details?: string;
+}
+
+// Type helper for raw data
+interface RawData {
+  title?: string;
+  description?: string;
+  location?: string;
+  url?: string;
+}
+
 export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfaceProps) {
   const [selectedTab, setSelectedTab] = useState("pending");
   const [previewItem, setPreviewItem] = useState<any>(null);
@@ -251,13 +269,13 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
 
   const validateItemForPublishing = (item: any): { isValid: boolean; issues: string[] } => {
     const issues: string[] = [];
-    const processedData = item.processed_data || {};
+    const processedData = item.processed_data as ProcessedData | null;
     
-    if (!processedData.title) {
+    if (!processedData?.title) {
       issues.push('Missing title');
     }
     
-    if (!processedData.description && !processedData.actionable_details) {
+    if (!processedData?.description && !processedData?.actionable_details) {
       issues.push('Missing content/description');
     }
     
@@ -275,7 +293,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
             <Checkbox
               checked={bulkSelection.isAllSelected}
               onCheckedChange={bulkSelection.toggleAll}
-              ref={(el) => {
+              ref={(el: HTMLInputElement | null) => {
                 if (el) {
                   el.indeterminate = bulkSelection.isIndeterminate;
                 }
@@ -300,8 +318,8 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
           </TableRow>
         ) : (
           items.map((item) => {
-            const processedData = item.processed_data || {};
-            const sourceData = item.raw_data || {};
+            const processedData = item.processed_data as ProcessedData | null;
+            const sourceData = item.raw_data as RawData | null;
             const validation = validateItemForPublishing(item);
             
             return (
@@ -315,7 +333,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                 <TableCell>
                   <div className="space-y-1">
                     <div className="font-medium text-sm flex items-center gap-2">
-                      {processedData.title || sourceData.title || 'No Title'}
+                      {processedData?.title || sourceData?.title || 'No Title'}
                       {!validation.isValid && (
                         <span title={`Issues: ${validation.issues.join(', ')}`}>
                           <AlertCircle className="h-4 w-4 text-yellow-500" />
@@ -323,19 +341,19 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                       )}
                     </div>
                     <div className="text-xs text-gray-500 max-w-xs truncate">
-                      {processedData.description || sourceData.description || 'No description'}
+                      {processedData?.description || sourceData?.description || 'No description'}
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="text-xs">
-                    {processedData.category || item.content_type || 'Unknown'}
+                    {processedData?.category || item.content_type || 'Unknown'}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 text-sm">
                     <MapPin className="h-3 w-3" />
-                    {processedData.location || sourceData.location || 'N/A'}
+                    {processedData?.location || sourceData?.location || 'N/A'}
                   </div>
                 </TableCell>
                 <TableCell>
