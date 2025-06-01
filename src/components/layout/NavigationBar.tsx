@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { Menu, Calendar, BookOpen, Map, Store, Sparkles, User, LogIn, LogOut, Settings, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -48,7 +47,7 @@ const NavigationBar = () => {
   }, [user]);
 
   const navLinks = [
-    { to: "/this-weekend", label: "This Weekend", icon: Calendar },
+    { to: "/events", label: "Events", icon: Calendar },
     { to: "/articles", label: "Articles", icon: BookOpen },
     { to: "/guides", label: "Guides", icon: Sparkles },
     { to: "/neighborhoods", label: "Neighborhoods", icon: Map },

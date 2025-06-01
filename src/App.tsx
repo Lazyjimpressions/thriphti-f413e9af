@@ -11,7 +11,7 @@ import Stores from "./pages/Stores";
 import StoreDetail from "./pages/StoreDetail";
 import Articles from "./pages/Articles";
 import ArticleDetail from "./pages/ArticleDetail";
-import ThisWeekend from "./pages/ThisWeekend";
+import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Guides from "./pages/Guides";
 import Auth from "./pages/Auth";
@@ -34,7 +34,7 @@ const App = () => (
             <Route path="/stores/:storeId" element={<StoreDetail />} />
             <Route path="/articles" element={<Articles />} />
             <Route path="/articles/:slug" element={<ArticleDetail />} />
-            <Route path="/this-weekend" element={<ThisWeekend />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/events/:eventId" element={<EventDetail />} />
             <Route path="/guides" element={<Guides />} />
             <Route path="/auth" element={<Auth />} />

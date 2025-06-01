@@ -1,3 +1,4 @@
+
 import { useState } from "react"; 
 import { 
   Carousel, 
@@ -11,12 +12,17 @@ import { getFeaturedEvents } from "@/integrations/supabase/queries";
 import { Event } from "@/types/event";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { TimeRange } from "@/pages/Events";
 
-export default function FeaturedEventsCarousel() {
+interface FeaturedEventsCarouselProps {
+  timeRange: TimeRange;
+}
+
+export default function FeaturedEventsCarousel({ timeRange }: FeaturedEventsCarouselProps) {
   const navigate = useNavigate();
   
   const { data: featuredEvents, isLoading, error } = useQuery({
-    queryKey: ['featuredEvents'],
+    queryKey: ['featuredEvents', timeRange],
     queryFn: getFeaturedEvents,
   });
 

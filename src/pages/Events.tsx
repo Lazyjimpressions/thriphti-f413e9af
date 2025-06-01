@@ -3,13 +3,14 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { fadeInUpVariants } from "@/lib/motion";
 import Layout from "@/components/layout/Layout";
-import ThisWeekendHero from "@/components/thisWeekend/ThisWeekendHero";
-import FeaturedEventsCarousel from "@/components/thisWeekend/FeaturedEventsCarousel";
-import EventsByDay from "@/components/thisWeekend/EventsByDay";
+import EventsHero from "@/components/events/EventsHero";
+import FeaturedEventsCarousel from "@/components/events/FeaturedEventsCarousel";
+import EventsByDay from "@/components/events/EventsByDay";
 import { CalendarRange, MapPin, Filter as FilterIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmailCta from "@/components/EmailCta";
-import ThisWeekendFilter from "@/components/thisWeekend/ThisWeekendFilter";
+import EventsFilter from "@/components/events/EventsFilter";
+import TimeRangeFilter from "@/components/events/TimeRangeFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,10 +22,13 @@ import {
 import { filterEvents } from "@/integrations/supabase/queries";
 import { useQuery } from "@tanstack/react-query";
 
-export default function ThisWeekend() {
+export type TimeRange = 'this-weekend' | 'next-week' | 'this-month' | 'all-upcoming';
+
+export default function Events() {
   const [activeFilters, setActiveFilters] = useState<string[]>(["Vintage", "North Dallas"]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>('this-weekend');
   
   // Use React Query to fetch filtered events
   const { data: filteredEvents } = useQuery({
@@ -52,10 +56,27 @@ export default function ThisWeekend() {
   
   return (
     <Layout>
-      <ThisWeekendHero onSearchInput={handleSearchInput} onSearchSubmit={handleSearchSubmit} />
+      <EventsHero 
+        timeRange={timeRange}
+        onSearchInput={handleSearchInput} 
+        onSearchSubmit={handleSearchSubmit} 
+      />
       
       <div className="container mx-auto px-4 pt-8 pb-16">
-        {/* Filter Section - New implementation with Sheet */}
+        {/* Time Range Filter */}
+        <motion.div
+          variants={fadeInUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-8"
+        >
+          <TimeRangeFilter 
+            timeRange={timeRange} 
+            onTimeRangeChange={setTimeRange}
+          />
+        </motion.div>
+
+        {/* Filter Section */}
         <motion.div
           variants={fadeInUpVariants}
           initial="hidden"
@@ -107,7 +128,7 @@ export default function ThisWeekend() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="overflow-y-auto">
-                  <ThisWeekendFilter 
+                  <EventsFilter 
                     activeFilters={activeFilters} 
                     setActiveFilters={setActiveFilters} 
                   />
@@ -128,10 +149,10 @@ export default function ThisWeekend() {
             Featured Events
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mb-8">
-            Hand-picked thrifting events in DFW this weekend, curated by our team of local experts.
+            Hand-picked thrifting events in DFW, curated by our team of local experts.
           </p>
           
-          <FeaturedEventsCarousel />
+          <FeaturedEventsCarousel timeRange={timeRange} />
         </motion.div>
         
         {/* Events by Day Section */}
@@ -149,7 +170,7 @@ export default function ThisWeekend() {
           </div>
           
           <TabsContent value="list" className="mt-0">
-            <EventsByDay />
+            <EventsByDay timeRange={timeRange} />
           </TabsContent>
           
           <TabsContent value="map" className="mt-0">
