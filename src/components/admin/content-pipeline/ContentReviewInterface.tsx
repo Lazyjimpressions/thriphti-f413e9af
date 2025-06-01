@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -260,8 +259,8 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     const selectedItems = bulkSelection.getSelectedItems();
     // Only include valid items for publishing
     const validItems = selectedItems.filter(item => {
-      const processedData = item.processed_data || {};
-      return processedData.title && (processedData.description || processedData.actionable_details);
+      const processedData = item.processed_data as ProcessedData | null;
+      return processedData?.title && (processedData?.description || processedData?.actionable_details);
     });
     const ids = validItems.map(item => item.id);
     await bulkPublishMutation.mutateAsync(ids);
@@ -293,11 +292,6 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
             <Checkbox
               checked={bulkSelection.isAllSelected}
               onCheckedChange={bulkSelection.toggleAll}
-              ref={(el: HTMLInputElement | null) => {
-                if (el) {
-                  el.indeterminate = bulkSelection.isIndeterminate;
-                }
-              }}
             />
           </TableHead>
           <TableHead>Title</TableHead>
