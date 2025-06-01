@@ -1,15 +1,26 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle, XCircle, Edit3, Eye, Calendar, MapPin, Star, Clock, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getContentPipelineItems, updatePipelineItemStatus, publishPipelineItem } from "@/integrations/supabase/contentQueries";
+import { 
+  getContentPipelineItems, 
+  updatePipelineItemStatus, 
+  publishPipelineItem,
+  bulkUpdatePipelineItemStatus,
+  bulkDeletePipelineItems,
+  bulkPublishPipelineItems
+} from "@/integrations/supabase/contentQueries";
 import { format } from "date-fns";
 import { ContentPreviewModal } from "./ContentPreviewModal";
+import { BulkActionsBar } from "./BulkActionsBar";
+import { useBulkSelection } from "@/hooks/useBulkSelection";
 
 interface ContentReviewInterfaceProps {
   onItemsUpdated?: () => void;
@@ -33,6 +44,29 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
   const processedItems = pipelineItems.filter(item => item.status === 'processed');
   const publishedItems = pipelineItems.filter(item => item.status === 'published');
   const rejectedItems = pipelineItems.filter(item => item.status === 'rejected');
+
+  // Get current tab items
+  const getCurrentTabItems = () => {
+    switch (selectedTab) {
+      case 'pending': return pendingItems;
+      case 'processed': return processedItems;
+      case 'published': return publishedItems;
+      case 'rejected': return rejectedItems;
+      default: return [];
+    }
+  };
+
+  // Bulk selection hook
+  const bulkSelection = useBulkSelection({
+    items: getCurrentTabItems(),
+    getItemId: (item) => item.id
+  });
+
+  // Reset selection when tab changes
+  const handleTabChange = (newTab: string) => {
+    setSelectedTab(newTab);
+    bulkSelection.clearSelection();
+  };
 
   // Mutations for status updates
   const updateStatusMutation = useMutation({
@@ -70,6 +104,73 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     },
   });
 
+  // Bulk operations
+  const bulkApproveMutation = useMutation({
+    mutationFn: (ids: string[]) => bulkUpdatePipelineItemStatus(ids, 'processed'),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-items'] });
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
+      onItemsUpdated?.();
+      refetch();
+      toast({
+        title: "Bulk Approved",
+        description: `${data.length} items have been approved.`,
+      });
+    },
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: (ids: string[]) => bulkUpdatePipelineItemStatus(ids, 'rejected'),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-items'] });
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
+      onItemsUpdated?.();
+      refetch();
+      toast({
+        title: "Bulk Rejected",
+        description: `${data.length} items have been rejected.`,
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => bulkDeletePipelineItems(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-items'] });
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
+      onItemsUpdated?.();
+      refetch();
+      toast({
+        title: "Bulk Deleted",
+        description: "Selected items have been deleted.",
+      });
+    },
+  });
+
+  const bulkPublishMutation = useMutation({
+    mutationFn: (ids: string[]) => bulkPublishPipelineItems(ids),
+    onSuccess: (results) => {
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-items'] });
+      queryClient.invalidateQueries({ queryKey: ['content-pipeline-stats'] });
+      onItemsUpdated?.();
+      refetch();
+      
+      if (results.failed.length > 0) {
+        toast({
+          title: "Bulk Publishing Completed",
+          description: `${results.success.length} items published successfully, ${results.failed.length} failed.`,
+          variant: results.success.length > 0 ? "default" : "destructive",
+        });
+      } else {
+        toast({
+          title: "Bulk Published",
+          description: `${results.success.length} items have been published.`,
+        });
+      }
+    },
+  });
+
+  // Event handlers
   const handlePreview = (item: any) => {
     setPreviewItem(item);
     setShowPreviewModal(true);
@@ -118,6 +219,36 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     }
   };
 
+  // Bulk action handlers
+  const handleBulkApprove = async () => {
+    const selectedItems = bulkSelection.getSelectedItems();
+    const ids = selectedItems.map(item => item.id);
+    await bulkApproveMutation.mutateAsync(ids);
+  };
+
+  const handleBulkReject = async () => {
+    const selectedItems = bulkSelection.getSelectedItems();
+    const ids = selectedItems.map(item => item.id);
+    await bulkRejectMutation.mutateAsync(ids);
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedItems = bulkSelection.getSelectedItems();
+    const ids = selectedItems.map(item => item.id);
+    await bulkDeleteMutation.mutateAsync(ids);
+  };
+
+  const handleBulkPublish = async () => {
+    const selectedItems = bulkSelection.getSelectedItems();
+    // Only include valid items for publishing
+    const validItems = selectedItems.filter(item => {
+      const processedData = item.processed_data || {};
+      return processedData.title && (processedData.description || processedData.actionable_details);
+    });
+    const ids = validItems.map(item => item.id);
+    await bulkPublishMutation.mutateAsync(ids);
+  };
+
   const validateItemForPublishing = (item: any): { isValid: boolean; issues: string[] } => {
     const issues: string[] = [];
     const processedData = item.processed_data || {};
@@ -140,6 +271,17 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-12">
+            <Checkbox
+              checked={bulkSelection.isAllSelected}
+              onCheckedChange={bulkSelection.toggleAll}
+              ref={(el) => {
+                if (el) {
+                  el.indeterminate = bulkSelection.isIndeterminate;
+                }
+              }}
+            />
+          </TableHead>
           <TableHead>Title</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Location</TableHead>
@@ -152,7 +294,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
       <TableBody>
         {items.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={showActions ? 7 : 6} className="text-center text-gray-500 py-8">
+            <TableCell colSpan={showActions ? 8 : 7} className="text-center text-gray-500 py-8">
               No items in this category
             </TableCell>
           </TableRow>
@@ -164,6 +306,12 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
             
             return (
               <TableRow key={item.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={bulkSelection.isSelected(item.id)}
+                    onCheckedChange={() => bulkSelection.toggleItem(item.id)}
+                  />
+                </TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <div className="font-medium text-sm flex items-center gap-2">
@@ -311,7 +459,7 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
         </Card>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+      <Tabs value={selectedTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending">
             Pending ({pendingItems.length})
@@ -367,6 +515,17 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
           {renderContentTable(rejectedItems, false)}
         </TabsContent>
       </Tabs>
+
+      <BulkActionsBar
+        selectedCount={bulkSelection.selectedCount}
+        selectedItems={bulkSelection.getSelectedItems()}
+        onBulkApprove={handleBulkApprove}
+        onBulkReject={handleBulkReject}
+        onBulkDelete={handleBulkDelete}
+        onBulkPublish={handleBulkPublish}
+        onClearSelection={bulkSelection.clearSelection}
+        currentTab={selectedTab}
+      />
 
       <ContentPreviewModal
         open={showPreviewModal}

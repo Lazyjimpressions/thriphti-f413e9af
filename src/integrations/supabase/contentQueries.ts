@@ -406,6 +406,73 @@ export async function getContentPipelineStats(): Promise<{
   return stats;
 }
 
+/**
+ * Bulk updates the status of multiple pipeline items
+ * @param ids - Array of item IDs to update
+ * @param status - New status to apply
+ * @returns Promise<ContentPipeline[]> The updated items
+ */
+export async function bulkUpdatePipelineItemStatus(ids: string[], status: string): Promise<ContentPipeline[]> {
+  if (ids.length === 0) return [];
+  
+  const { data, error } = await supabase
+    .from('content_pipeline')
+    .update({ status })
+    .in('id', ids)
+    .select();
+
+  if (error) throw new Error(`Failed to bulk update pipeline items: ${error.message}`);
+  return data || [];
+}
+
+/**
+ * Bulk deletes multiple pipeline items
+ * @param ids - Array of item IDs to delete
+ * @returns Promise<void>
+ */
+export async function bulkDeletePipelineItems(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  
+  const { error } = await supabase
+    .from('content_pipeline')
+    .delete()
+    .in('id', ids);
+
+  if (error) throw new Error(`Failed to bulk delete pipeline items: ${error.message}`);
+}
+
+/**
+ * Bulk publishes multiple pipeline items
+ * @param ids - Array of item IDs to publish
+ * @returns Promise<{success: string[], failed: Array<{id: string, error: string}>}>
+ */
+export async function bulkPublishPipelineItems(ids: string[]): Promise<{
+  success: string[];
+  failed: Array<{id: string, error: string}>;
+}> {
+  if (ids.length === 0) return { success: [], failed: [] };
+  
+  const results = {
+    success: [] as string[],
+    failed: [] as Array<{id: string, error: string}>
+  };
+
+  // Process items sequentially to avoid overwhelming the database
+  for (const id of ids) {
+    try {
+      await publishPipelineItem(id);
+      results.success.push(id);
+    } catch (error: any) {
+      results.failed.push({
+        id,
+        error: error.message || 'Unknown error'
+      });
+    }
+  }
+
+  return results;
+}
+
 // Helper functions for publishing
 function extractNeighborhood(location: string): string {
   const neighborhoods = [
