@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,7 +169,9 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                     <div className="font-medium text-sm flex items-center gap-2">
                       {processedData.title || sourceData.title || 'No Title'}
                       {!validation.isValid && (
-                        <AlertCircle className="h-4 w-4 text-yellow-500" title={`Issues: ${validation.issues.join(', ')}`} />
+                        <span title={`Issues: ${validation.issues.join(', ')}`}>
+                          <AlertCircle className="h-4 w-4 text-yellow-500" />
+                        </span>
                       )}
                     </div>
                     <div className="text-xs text-gray-500 max-w-xs truncate">
@@ -379,4 +380,3 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     </div>
   );
 }
-
