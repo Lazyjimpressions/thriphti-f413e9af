@@ -75,9 +75,9 @@ serve(async (req) => {
 
     console.log('Found source:', source.name);
 
-    // 2. AI Web Scraping for this specific source
-    console.log('Step 2: Running AI web scraper for source...');
-    const scrapedContent = await aiWebScraperForSource(source, openAIApiKey);
+    // 2. RSS Feed Scraping for this specific source
+    console.log('Step 2: Fetching RSS feed for source...');
+    const scrapedContent = await fetchRSSFeed(source);
     console.log(`Scraped ${scrapedContent.length} raw content items`);
 
     // 3. AI Content Filter & Processor
@@ -140,109 +140,140 @@ serve(async (req) => {
   }
 });
 
-async function aiWebScraperForSource(source: any, openAIApiKey: string): Promise<RawContent[]> {
-  console.log('AI Web Scraper: Processing source:', source.name);
-  const scrapedData: RawContent[] = [];
-
-  // Enhanced simulated scraping based on source type and URL
-  let simulatedContent: any[] = [];
-
-  if (source.url.includes('google.com/rss') || source.url.includes('news.google.com')) {
-    // Google News RSS feed simulation
-    simulatedContent = [
-      {
-        title: "New Thrift Store Opens in Downtown Dallas",
-        description: "A vintage clothing store specializing in designer finds has opened its doors in the Arts District, offering curated pieces from local estate sales.",
-        location: "Downtown Dallas, TX",
-        date: new Date().toISOString().split('T')[0],
-        price: "$5-75",
-        type: "thrift_store"
-      },
-      {
-        title: "Weekend Estate Sale Features Mid-Century Collection",
-        description: "Local family is hosting a three-day estate sale featuring authentic mid-century modern furniture, vintage jewelry, and collectible items.",
-        location: "Highland Park, Dallas, TX",
-        date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
-        price: "$10-500",
-        type: "estate_sale"
+async function fetchRSSFeed(source: any): Promise<RawContent[]> {
+  console.log('RSS Feed Parser: Processing source:', source.name, 'URL:', source.url);
+  
+  try {
+    // Fetch the RSS feed
+    console.log('Fetching RSS feed from:', source.url);
+    const response = await fetch(source.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Thriphti-Bot/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml'
       }
-    ];
-  } else {
-    // Default content for other sources
-    simulatedContent = [
-      {
-        title: `Content from ${source.name}`,
-        description: `Sample content scraped from ${source.url}`,
-        location: "Dallas, TX",
-        date: new Date().toISOString().split('T')[0],
-        price: "Various",
-        type: source.category || "mixed"
-      }
-    ];
-  }
+    });
 
-  // Process simulated data
-  for (const item of simulatedContent) {
-    try {
-      if (!openAIApiKey) {
-        console.log('No OpenAI key, using raw content without enhancement');
-        scrapedData.push({
-          ...item,
-          source: source.name,
-          scraped_at: new Date().toISOString()
-        });
-        continue;
-      }
-
-      console.log(`Enhancing content: ${item.title}`);
-      const enhanced = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'system',
-            content: `You are a content enhancement AI for Dallas-Fort Worth thrifting. Enhance this content with realistic details while keeping it factual. Add specific addresses in DFW, realistic prices, and detailed descriptions. Return JSON format: {title, description, location, date, price, type, enhanced_details}`
-          }, {
-            role: 'user',
-            content: `Enhance this thrifting content: ${JSON.stringify(item)}`
-          }],
-          temperature: 0.3
-        }),
-      });
-
-      if (!enhanced.ok) {
-        console.error('OpenAI API error:', enhanced.status, enhanced.statusText);
-        throw new Error(`OpenAI API error: ${enhanced.status}`);
-      }
-
-      const response = await enhanced.json();
-      console.log('OpenAI response for enhancement:', response.choices?.[0]?.message?.content?.substring(0, 100));
-      
-      const enhancedContent = JSON.parse(response.choices[0].message.content || '{}');
-
-      scrapedData.push({
-        ...enhancedContent,
-        source: source.name,
-        scraped_at: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error('Error enhancing content:', error);
-      // Fallback to original content
-      scrapedData.push({
-        ...item,
-        source: source.name,
-        scraped_at: new Date().toISOString()
-      });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-  }
 
-  console.log(`AI Web Scraper: Completed with ${scrapedData.length} items`);
-  return scrapedData;
+    const xmlText = await response.text();
+    console.log('RSS feed fetched, length:', xmlText.length);
+    
+    // Parse the XML content
+    const items = await parseRSSXML(xmlText, source);
+    console.log(`Parsed ${items.length} items from RSS feed`);
+    
+    return items;
+
+  } catch (error) {
+    console.error('Error fetching RSS feed:', error);
+    throw new Error(`Failed to fetch RSS feed: ${error.message}`);
+  }
+}
+
+async function parseRSSXML(xmlText: string, source: any): Promise<RawContent[]> {
+  const items: RawContent[] = [];
+  
+  try {
+    // Basic XML parsing - extract items between <item> tags
+    const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    const itemMatches = xmlText.match(itemRegex) || [];
+    
+    console.log(`Found ${itemMatches.length} items in RSS feed`);
+    
+    for (const itemXML of itemMatches) {
+      try {
+        const item = parseRSSItem(itemXML, source);
+        if (item) {
+          items.push(item);
+        }
+      } catch (error) {
+        console.error('Error parsing RSS item:', error);
+        // Continue with other items
+      }
+    }
+    
+    return items;
+    
+  } catch (error) {
+    console.error('Error parsing RSS XML:', error);
+    return [];
+  }
+}
+
+function parseRSSItem(itemXML: string, source: any): RawContent | null {
+  try {
+    // Extract basic fields using regex
+    const title = extractXMLField(itemXML, 'title');
+    const description = extractXMLField(itemXML, 'description') || extractXMLField(itemXML, 'content:encoded');
+    const link = extractXMLField(itemXML, 'link') || extractXMLField(itemXML, 'guid');
+    const pubDate = extractXMLField(itemXML, 'pubDate') || extractXMLField(itemXML, 'published');
+    
+    if (!title) {
+      console.log('Skipping item without title');
+      return null;
+    }
+    
+    // Clean up description (remove HTML tags)
+    const cleanDescription = description 
+      ? description.replace(/<[^>]*>/g, '').trim()
+      : '';
+    
+    // Format date
+    let formattedDate = '';
+    if (pubDate) {
+      try {
+        const date = new Date(pubDate);
+        formattedDate = date.toISOString().split('T')[0];
+      } catch (e) {
+        console.log('Could not parse date:', pubDate);
+      }
+    }
+    
+    console.log('Parsed RSS item:', { title: title.substring(0, 50), hasDescription: !!cleanDescription });
+    
+    return {
+      title: title.trim(),
+      description: cleanDescription,
+      location: 'Dallas, TX', // Default for Dallas subreddit
+      date: formattedDate || new Date().toISOString().split('T')[0],
+      url: link,
+      price: '', // Will be extracted by AI if relevant
+      type: source.category || 'reddit_post',
+      source: source.name,
+      scraped_at: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('Error parsing RSS item:', error);
+    return null;
+  }
+}
+
+function extractXMLField(xml: string, fieldName: string): string {
+  // Try CDATA format first
+  const cdataRegex = new RegExp(`<${fieldName}[^>]*><!\\[CDATA\\[(.*?)\\]\\]><\/${fieldName}>`, 'si');
+  const cdataMatch = xml.match(cdataRegex);
+  if (cdataMatch) {
+    return cdataMatch[1];
+  }
+  
+  // Try regular format
+  const regularRegex = new RegExp(`<${fieldName}[^>]*>(.*?)<\/${fieldName}>`, 'si');
+  const regularMatch = xml.match(regularRegex);
+  if (regularMatch) {
+    return regularMatch[1];
+  }
+  
+  // Try self-closing tag with content
+  const selfClosingRegex = new RegExp(`<${fieldName}[^>]*>([^<]*?)(?=<)`, 'si');
+  const selfClosingMatch = xml.match(selfClosingRegex);
+  if (selfClosingMatch) {
+    return selfClosingMatch[1];
+  }
+  
+  return '';
 }
 
 async function aiContentProcessor(rawContent: RawContent[], openAIApiKey: string): Promise<ProcessedContent[]> {
@@ -254,10 +285,10 @@ async function aiContentProcessor(rawContent: RawContent[], openAIApiKey: string
       id: `processed_${index}_${Date.now()}`,
       title: item.title,
       description: item.description,
-      category: item.type,
+      category: determineCategory(item.title + ' ' + item.description),
       location: item.location || 'Dallas, TX',
-      relevance_score: 8, // Default high score for testing
-      actionable_details: `${item.location || 'Dallas area'} - ${item.price || 'Various prices'} - ${item.date || 'This weekend'}`,
+      relevance_score: calculateBasicRelevance(item.title + ' ' + item.description),
+      actionable_details: `${item.location || 'Dallas area'} - ${item.date || 'Recent post'}`,
       date: item.date,
       source_data: item
     }));
@@ -278,17 +309,18 @@ async function aiContentProcessor(rawContent: RawContent[], openAIApiKey: string
           content: `You are a content processing AI for Thriphti.com (Dallas-Fort Worth thrifting editorial site).
 
 Process this raw content and:
-1. Filter for Dallas-Fort Worth area only
-2. Score relevance to thrifting (1-10)
-3. Remove duplicates
-4. Categorize: garage_sale, estate_sale, thrift_store, flea_market, vintage_shop, tips, news
-5. Extract actionable details (address, hours, special items, prices)
+1. Filter for Dallas-Fort Worth area content only
+2. Score relevance to thrifting/secondhand shopping (1-10)
+3. Remove duplicates and spam
+4. Categorize: garage_sale, estate_sale, thrift_store, flea_market, vintage_shop, tips, news, community
+5. Extract actionable details (locations, times, special items, prices if mentioned)
 
-Only keep items with relevance ≥ 5 and DFW location. Be generous with scoring for testing.
+Only keep items with relevance ≥ 5. Look for keywords like: thrift, vintage, secondhand, garage sale, estate sale, consignment, flea market, yard sale, resale, antique, used items, etc.
+
 Return JSON array with: {id, title, description, category, location, relevance_score, actionable_details, date, source_data}`
         }, {
           role: 'user',
-          content: `Process this raw content:\n\n${JSON.stringify(rawContent)}`
+          content: `Process this raw content:\n\n${JSON.stringify(rawContent.slice(0, 10))}` // Limit to 10 items per batch
         }],
         temperature: 0.2
       }),
@@ -300,12 +332,18 @@ Return JSON array with: {id, title, description, category, location, relevance_s
     }
 
     const data = await response.json();
-    console.log('OpenAI processing response:', data.choices?.[0]?.message?.content?.substring(0, 200));
+    console.log('OpenAI processing response length:', data.choices?.[0]?.message?.content?.length || 0);
     
     const processed = JSON.parse(data.choices[0].message.content || '[]');
     
-    // Filter for relevance >= 5
-    const filtered = processed.filter((item: any) => item.relevance_score >= 5);
+    // Filter for relevance >= 5 and add unique IDs
+    const filtered = processed
+      .filter((item: any) => item.relevance_score >= 5)
+      .map((item: any) => ({
+        ...item,
+        id: `processed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }));
+    
     console.log(`AI Content Processor: Filtered to ${filtered.length} items (relevance >= 5)`);
     
     return filtered;
@@ -317,21 +355,52 @@ Return JSON array with: {id, title, description, category, location, relevance_s
       id: `processed_${index}_${Date.now()}`,
       title: item.title,
       description: item.description,
-      category: item.type,
+      category: determineCategory(item.title + ' ' + item.description),
       location: item.location || 'Dallas, TX',
-      relevance_score: 8, // Default high score for testing
-      actionable_details: `${item.location || 'Dallas area'} - ${item.price || 'Various prices'} - ${item.date || 'This weekend'}`,
+      relevance_score: calculateBasicRelevance(item.title + ' ' + item.description),
+      actionable_details: `${item.location || 'Dallas area'} - ${item.date || 'Recent post'}`,
       date: item.date,
       source_data: item
     }));
   }
 }
 
+function determineCategory(content: string): string {
+  const lower = content.toLowerCase();
+  
+  if (lower.includes('garage sale') || lower.includes('yard sale')) return 'garage_sale';
+  if (lower.includes('estate sale')) return 'estate_sale';
+  if (lower.includes('thrift store') || lower.includes('thrift shop')) return 'thrift_store';
+  if (lower.includes('flea market')) return 'flea_market';
+  if (lower.includes('vintage') || lower.includes('antique')) return 'vintage_shop';
+  if (lower.includes('consignment')) return 'thrift_store';
+  if (lower.includes('tips') || lower.includes('advice') || lower.includes('guide')) return 'tips';
+  
+  return 'community';
+}
+
+function calculateBasicRelevance(content: string): number {
+  const lower = content.toLowerCase();
+  let score = 0;
+  
+  // Thrift-related keywords
+  const thriftKeywords = ['thrift', 'vintage', 'secondhand', 'garage sale', 'estate sale', 'consignment', 'flea market', 'yard sale', 'resale', 'antique', 'used'];
+  const keywordMatches = thriftKeywords.filter(keyword => lower.includes(keyword)).length;
+  score += keywordMatches * 2;
+  
+  // Dallas area mentions
+  const dallasKeywords = ['dallas', 'dfw', 'fort worth', 'plano', 'frisco', 'richardson', 'garland', 'mesquite'];
+  const locationMatches = dallasKeywords.filter(location => lower.includes(location)).length;
+  score += locationMatches * 1;
+  
+  // Cap at 10
+  return Math.min(score, 10);
+}
+
 async function saveToContentPipeline(supabase: any, processedContent: ProcessedContent[], sourceId: string): Promise<any[]> {
   console.log('Save Content Pipeline: Starting...');
   const savedItems = [];
 
-  // Save pipeline data
   console.log(`Saving ${processedContent.length} items to content_pipeline...`);
   for (const processed of processedContent) {
     try {
@@ -353,7 +422,7 @@ async function saveToContentPipeline(supabase: any, processedContent: ProcessedC
         console.error('Error saving pipeline item:', error);
       } else {
         savedItems.push(pipelineData);
-        console.log(`Saved pipeline item: ${pipelineData.id} - ${processed.title}`);
+        console.log(`Saved pipeline item: ${pipelineData.id} - ${processed.title.substring(0, 50)}...`);
       }
     } catch (error) {
       console.error('Exception saving pipeline item:', error);
