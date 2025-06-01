@@ -299,7 +299,6 @@ export async function publishPipelineItem(id: string): Promise<void> {
         category: category,
         neighborhood: extractNeighborhood(processedData.location || ''),
         price_range: extractPriceRange(processedData.actionable_details || ''),
-        featured: false,
         source_url: rawData?.url || null
       };
 
@@ -323,7 +322,7 @@ export async function publishPipelineItem(id: string): Promise<void> {
         throw new Error('Article title is required');
       }
 
-      // Publish as an article
+      // Publish as an article - removed featured field to fix schema error
       const articleData = {
         title: processedData.title,
         body: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
@@ -331,7 +330,6 @@ export async function publishPipelineItem(id: string): Promise<void> {
         slug: generateSlug(processedData.title),
         category: 'news',
         tags: [category],
-        featured: false,
         published_at: new Date().toISOString(),
         author: 'Thriphti Team',
         source_url: rawData?.url || null
