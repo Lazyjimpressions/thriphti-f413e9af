@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Edit3, Eye, Calendar, MapPin, Star, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Edit3, Eye, Calendar, MapPin, Star, Clock, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getContentPipelineItems, updatePipelineItemStatus, publishPipelineItem } from "@/integrations/supabase/contentQueries";
@@ -61,9 +62,10 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
       });
     },
     onError: (error: any) => {
+      console.error('Publishing error:', error);
       toast({
         title: "Publishing Failed",
-        description: error.message,
+        description: error.message || "Failed to publish content. Please check the console for details.",
         variant: "destructive",
       });
     },
@@ -82,9 +84,10 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
         description: "Content has been approved for review.",
       });
     } catch (error: any) {
+      console.error('Approval error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to approve content",
         variant: "destructive",
       });
     }
@@ -98,24 +101,40 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
         description: "Content has been rejected.",
       });
     } catch (error: any) {
+      console.error('Rejection error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to reject content",
         variant: "destructive",
       });
     }
   };
 
   const handlePublish = async (id: string) => {
+    console.log('Publishing item:', id);
     try {
       await publishMutation.mutateAsync(id);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('Publishing error in component:', error);
     }
+  };
+
+  const validateItemForPublishing = (item: any): { isValid: boolean; issues: string[] } => {
+    const issues: string[] = [];
+    const processedData = item.processed_data || {};
+    
+    if (!processedData.title) {
+      issues.push('Missing title');
+    }
+    
+    if (!processedData.description && !processedData.actionable_details) {
+      issues.push('Missing content/description');
+    }
+    
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
   };
 
   const renderContentTable = (items: any[], showActions = true) => (
@@ -142,13 +161,17 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
           items.map((item) => {
             const processedData = item.processed_data || {};
             const sourceData = item.raw_data || {};
+            const validation = validateItemForPublishing(item);
             
             return (
               <TableRow key={item.id}>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="font-medium text-sm">
+                    <div className="font-medium text-sm flex items-center gap-2">
                       {processedData.title || sourceData.title || 'No Title'}
+                      {!validation.isValid && (
+                        <AlertCircle className="h-4 w-4 text-yellow-500" title={`Issues: ${validation.issues.join(', ')}`} />
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 max-w-xs truncate">
                       {processedData.description || sourceData.description || 'No description'}
@@ -224,10 +247,11 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
                         <Button
                           size="sm"
                           onClick={() => handlePublish(item.id)}
-                          disabled={publishMutation.isPending}
+                          disabled={publishMutation.isPending || !validation.isValid}
                           className="h-8 px-3 text-xs"
+                          title={!validation.isValid ? `Cannot publish: ${validation.issues.join(', ')}` : 'Publish content'}
                         >
-                          Publish
+                          {publishMutation.isPending ? 'Publishing...' : 'Publish'}
                         </Button>
                       )}
                     </div>
@@ -355,3 +379,4 @@ export function ContentReviewInterface({ onItemsUpdated }: ContentReviewInterfac
     </div>
   );
 }
+

@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import type { Database } from './types';
 
@@ -249,6 +248,8 @@ export async function updatePipelineItemStatus(id: string, status: string): Prom
  * @returns Promise<void>
  */
 export async function publishPipelineItem(id: string): Promise<void> {
+  console.log(`Publishing pipeline item: ${id}`);
+  
   // Get the pipeline item
   const { data: pipelineItem, error: fetchError } = await supabase
     .from('content_pipeline')
@@ -256,67 +257,118 @@ export async function publishPipelineItem(id: string): Promise<void> {
     .eq('id', id)
     .single();
 
-  if (fetchError) throw new Error(`Failed to fetch pipeline item: ${fetchError.message}`);
+  if (fetchError) {
+    console.error('Failed to fetch pipeline item:', fetchError);
+    throw new Error(`Failed to fetch pipeline item: ${fetchError.message}`);
+  }
+
+  console.log('Pipeline item fetched:', pipelineItem);
 
   const processedData = pipelineItem.processed_data as ProcessedData;
   const rawData = pipelineItem.raw_data as RawData;
   
-  if (!processedData) throw new Error('No processed data found for this item');
+  if (!processedData) {
+    console.error('No processed data found for item:', id);
+    throw new Error('No processed data found for this item');
+  }
+
+  console.log('Processed data:', processedData);
 
   // Determine the content type and publish accordingly
   const category = processedData.category || pipelineItem.content_type;
+  console.log('Publishing as category:', category);
   
-  if (category === 'garage_sale' || category === 'estate_sale' || category === 'flea_market') {
-    // Publish as an event
-    const eventData = {
-      title: processedData.title || 'Untitled Event',
-      description: processedData.description || '',
-      location: processedData.location || 'Dallas, TX',
-      venue: processedData.location || 'Dallas, TX',
-      event_date: processedData.date || new Date().toISOString().split('T')[0],
-      start_time: '09:00',
-      end_time: '17:00',
-      category: category,
-      neighborhood: extractNeighborhood(processedData.location || ''),
-      price_range: extractPriceRange(processedData.actionable_details || ''),
-      featured: false,
-      source_url: rawData?.url || null
-    };
+  try {
+    if (category === 'garage_sale' || category === 'estate_sale' || category === 'flea_market') {
+      console.log('Publishing as event...');
+      
+      // Validate required event fields
+      if (!processedData.title) {
+        throw new Error('Event title is required');
+      }
 
-    const { error: eventError } = await supabase
-      .from('events')
-      .insert(eventData);
+      // Publish as an event
+      const eventData = {
+        title: processedData.title,
+        description: processedData.description || '',
+        location: processedData.location || 'Dallas, TX',
+        venue: processedData.location || 'Dallas, TX',
+        event_date: processedData.date || new Date().toISOString().split('T')[0],
+        start_time: '09:00',
+        end_time: '17:00',
+        category: category,
+        neighborhood: extractNeighborhood(processedData.location || ''),
+        price_range: extractPriceRange(processedData.actionable_details || ''),
+        featured: false,
+        source_url: rawData?.url || null
+      };
 
-    if (eventError) throw new Error(`Failed to publish event: ${eventError.message}`);
-  } else {
-    // Publish as an article
-    const articleData = {
-      title: processedData.title || 'Untitled Article',
-      body: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
-      excerpt: (processedData.description || '').substring(0, 200),
-      slug: generateSlug(processedData.title || 'untitled'),
-      category: 'news',
-      tags: [category],
-      featured: false,
-      published_at: new Date().toISOString(),
-      author: 'Thriphti Team',
-      source_url: rawData?.url || null
-    };
+      console.log('Event data to insert:', eventData);
 
-    const { error: articleError } = await supabase
-      .from('articles')
-      .insert(articleData);
+      const { error: eventError } = await supabase
+        .from('events')
+        .insert(eventData);
 
-    if (articleError) throw new Error(`Failed to publish article: ${articleError.message}`);
+      if (eventError) {
+        console.error('Failed to insert event:', eventError);
+        throw new Error(`Failed to publish event: ${eventError.message}`);
+      }
+
+      console.log('Event published successfully');
+    } else {
+      console.log('Publishing as article...');
+      
+      // Validate required article fields
+      if (!processedData.title) {
+        throw new Error('Article title is required');
+      }
+
+      // Publish as an article
+      const articleData = {
+        title: processedData.title,
+        body: `${processedData.description || ''}\n\n${processedData.actionable_details || ''}`,
+        excerpt: (processedData.description || '').substring(0, 200),
+        slug: generateSlug(processedData.title),
+        category: 'news',
+        tags: [category],
+        featured: false,
+        published_at: new Date().toISOString(),
+        author: 'Thriphti Team',
+        source_url: rawData?.url || null
+      };
+
+      console.log('Article data to insert:', articleData);
+
+      const { error: articleError } = await supabase
+        .from('articles')
+        .insert(articleData);
+
+      if (articleError) {
+        console.error('Failed to insert article:', articleError);
+        throw new Error(`Failed to publish article: ${articleError.message}`);
+      }
+
+      console.log('Article published successfully');
+    }
+
+    // Update pipeline item status to published
+    console.log('Updating pipeline item status to published...');
+    const { error: updateError } = await supabase
+      .from('content_pipeline')
+      .update({ status: 'published' })
+      .eq('id', id);
+
+    if (updateError) {
+      console.error('Failed to update pipeline status:', updateError);
+      throw new Error(`Failed to update pipeline item to published: ${updateError.message}`);
+    }
+
+    console.log('Pipeline item status updated successfully');
+  } catch (error: any) {
+    console.error('Publishing failed:', error);
+    // Re-throw with more context
+    throw new Error(`Publishing failed: ${error.message}`);
   }
-
-  // Update pipeline item status to published
-  const { error: updateError } = await supabase
-    .from('content_pipeline')
-    .update({ status: 'published' })
-    .eq('id', id);
-
-  if (updateError) throw new Error(`Failed to update pipeline item to published: ${updateError.message}`);
 }
 
 /**
