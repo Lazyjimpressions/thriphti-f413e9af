@@ -13,14 +13,14 @@ import StoreHeader from "@/components/storeDetail/StoreHeader";
 import StoreInfoPanel from "@/components/storeDetail/StoreInfoPanel";
 import ReviewCard from "@/components/storeDetail/ReviewCard";
 import RelatedArticle from "@/components/storeDetail/RelatedArticle";
-import { getStoreById, getStoreReviews } from '@/integrations/supabase/queries';
+import { getStoreByIdWithChain, getStoreReviews } from '@/integrations/supabase/queries';
 import type { Database } from '@/types/supabase';
 
 const DEFAULT_HERO_IMAGE = "/images/store_image2.png";
 
 export default function StoreDetail() {
   const { storeId } = useParams<{ storeId: string }>();
-  const [store, setStore] = useState<Database['public']['Tables']['stores']['Row'] | null>(null);
+  const [store, setStore] = useState<Database['public']['Tables']['stores']['Row'] & { store_chains?: any } | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export default function StoreDetail() {
     setLoading(true);
     setError(null);
     Promise.all([
-      getStoreById(storeId),
+      getStoreByIdWithChain(storeId),
       getStoreReviews(storeId)
     ])
       .then(([storeData, reviewsData]) => {
@@ -66,12 +66,48 @@ export default function StoreDetail() {
       </Helmet>
       <main>
         <StoreHeader 
-          name={store.name}
-          subtitle={store.category?.join(', ') || ''}
+          name={store.location_name || store.name}
+          subtitle={store.store_chains?.name || store.category?.join(', ') || ''}
           image={store.images?.[0] || DEFAULT_HERO_IMAGE}
         />
         
         <div className="thriphti-container py-12">
+          {/* Chain Info Banner */}
+          {store.store_chains && (
+            <motion.div 
+              className="bg-thriphti-green/10 border border-thriphti-green/20 rounded-lg p-4 mb-8"
+              variants={fadeInUpVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {store.store_chains.logo_url && (
+                    <img 
+                      src={store.store_chains.logo_url} 
+                      alt={`${store.store_chains.name} logo`}
+                      className="w-10 h-10 object-contain"
+                    />
+                  )}
+                  <div>
+                    <p className="text-sm text-thriphti-charcoal/70">Part of</p>
+                    <p className="font-medium text-thriphti-green">{store.store_chains.name}</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="border-thriphti-green text-thriphti-green hover:bg-thriphti-green/10"
+                  asChild
+                >
+                  <Link to={`/chains/${store.store_chains.id}`}>
+                    View All Locations
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Image Gallery */}
           {store.images && store.images.length > 1 && (
             <div className="flex gap-4 mb-8 overflow-x-auto">
@@ -98,6 +134,11 @@ export default function StoreDetail() {
               </p>
               
               <div className="flex flex-wrap gap-2 mb-8">
+                {store.is_flagship && (
+                  <Badge className="bg-thriphti-gold text-thriphti-charcoal">
+                    Flagship Location
+                  </Badge>
+                )}
                 {store.category?.map((category, index) => (
                   <Badge key={index} variant="outline" className="bg-thriphti-ivory border-thriphti-green text-thriphti-green hover:bg-thriphti-green/10">
                     {category}
