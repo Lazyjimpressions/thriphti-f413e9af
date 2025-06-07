@@ -23,12 +23,12 @@ export async function createAIGeneratedStore(storeData: any): Promise<Store> {
     zip: storeData.zip,
     phone: storeData.phone,
     website: storeData.website,
-    hours: storeData.hours,
     images: storeData.images,
     approved: false, // AI-generated stores need approval
     ai_generated: true,
-    ai_confidence: storeData.confidence,
-    ai_analysis_data: {
+    confidence_score: storeData.confidence,
+    ai_metadata: {
+      hours: storeData.hours,
       specialties: storeData.specialties,
       priceRange: storeData.priceRange,
       features: storeData.features,
@@ -56,7 +56,7 @@ export async function getAIPendingStores(): Promise<Store[]> {
     .select('*')
     .eq('ai_generated', true)
     .eq('approved', false)
-    .order('ai_confidence', { ascending: false });
+    .order('confidence_score', { ascending: false });
 
   if (error) throw new Error(`Failed to fetch AI pending stores: ${error.message}`);
   return data || [];

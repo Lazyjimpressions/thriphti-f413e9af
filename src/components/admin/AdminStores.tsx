@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -213,7 +214,7 @@ export default function AdminStores() {
                                 <Star 
                                   key={i} 
                                   className={`h-3 w-3 ${
-                                    i < (store.ai_confidence || 0) * 5 
+                                    i < (store.confidence_score || 0) * 5 
                                       ? 'fill-yellow-400 text-yellow-400' 
                                       : 'text-gray-300'
                                   }`} 
@@ -221,7 +222,7 @@ export default function AdminStores() {
                               ))}
                             </div>
                             <span className="text-xs text-gray-600">
-                              {Math.round((store.ai_confidence || 0) * 100)}%
+                              {Math.round((store.confidence_score || 0) * 100)}%
                             </span>
                           </div>
                         </TableCell>
