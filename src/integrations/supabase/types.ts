@@ -420,6 +420,51 @@ export type Database = {
         }
         Relationships: []
       }
+      store_chains: {
+        Row: {
+          chain_type: string | null
+          created_at: string
+          description: string | null
+          founded_year: number | null
+          headquarters_city: string | null
+          headquarters_state: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          total_locations: number | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          chain_type?: string | null
+          created_at?: string
+          description?: string | null
+          founded_year?: number | null
+          headquarters_city?: string | null
+          headquarters_state?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          total_locations?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          chain_type?: string | null
+          created_at?: string
+          description?: string | null
+          founded_year?: number | null
+          headquarters_city?: string | null
+          headquarters_state?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          total_locations?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       store_reviews: {
         Row: {
           comment: string | null
@@ -470,6 +515,7 @@ export type Database = {
           approved: boolean | null
           auto_published: boolean | null
           category: string[] | null
+          chain_id: string | null
           city: string | null
           confidence_score: number | null
           created_at: string | null
@@ -477,13 +523,16 @@ export type Database = {
           email: string | null
           id: string
           images: string[] | null
+          is_flagship: boolean | null
           location: unknown | null
+          location_name: string | null
           name: string
           phone: string | null
           pipeline_id: string | null
           source_type: string | null
           source_url: string | null
           state: string | null
+          store_number: string | null
           submitted_by: string | null
           website: string | null
           zip: string | null
@@ -495,6 +544,7 @@ export type Database = {
           approved?: boolean | null
           auto_published?: boolean | null
           category?: string[] | null
+          chain_id?: string | null
           city?: string | null
           confidence_score?: number | null
           created_at?: string | null
@@ -502,13 +552,16 @@ export type Database = {
           email?: string | null
           id?: string
           images?: string[] | null
+          is_flagship?: boolean | null
           location?: unknown | null
+          location_name?: string | null
           name: string
           phone?: string | null
           pipeline_id?: string | null
           source_type?: string | null
           source_url?: string | null
           state?: string | null
+          store_number?: string | null
           submitted_by?: string | null
           website?: string | null
           zip?: string | null
@@ -520,6 +573,7 @@ export type Database = {
           approved?: boolean | null
           auto_published?: boolean | null
           category?: string[] | null
+          chain_id?: string | null
           city?: string | null
           confidence_score?: number | null
           created_at?: string | null
@@ -527,18 +581,28 @@ export type Database = {
           email?: string | null
           id?: string
           images?: string[] | null
+          is_flagship?: boolean | null
           location?: unknown | null
+          location_name?: string | null
           name?: string
           phone?: string | null
           pipeline_id?: string | null
           source_type?: string | null
           source_url?: string | null
           state?: string | null
+          store_number?: string | null
           submitted_by?: string | null
           website?: string | null
           zip?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stores_chain_id_fkey"
+            columns: ["chain_id"]
+            isOneToOne: false
+            referencedRelation: "store_chains"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stores_pipeline_id_fkey"
             columns: ["pipeline_id"]

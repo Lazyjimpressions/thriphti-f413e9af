@@ -84,7 +84,7 @@ export async function getStoresByChain(chainId: string, approvedOnly: boolean = 
  * @param storeId - The store ID
  * @param chainId - The chain ID
  * @param locationName - Optional location name
- * @param isflagship - Whether this is a flagship location
+ * @param isFlagship - Whether this is a flagship location
  * @param storeNumber - Optional store number
  * @returns Promise<Store> The updated store
  */
@@ -92,7 +92,7 @@ export async function addStoreToChain(
   storeId: string, 
   chainId: string, 
   locationName?: string,
-  isFlag ship: boolean = false,
+  isFlagship: boolean = false,
   storeNumber?: string
 ): Promise<Store> {
   const { data, error } = await supabase
@@ -100,7 +100,7 @@ export async function addStoreToChain(
     .update({
       chain_id: chainId,
       location_name: locationName,
-      is_flagship: isFlag ship,
+      is_flagship: isFlagship,
       store_number: storeNumber
     })
     .eq('id', storeId)

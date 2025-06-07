@@ -12,6 +12,7 @@ type DbEvent = Database['public']['Tables']['events']['Row'];
 type Favorite = Database['public']['Tables']['favorites']['Row'];
 type EmailPreference = Database['public']['Tables']['email_preferences']['Row'];
 type UserRole = Database['public']['Tables']['user_roles']['Row'];
+type StoreChain = Database['public']['Tables']['store_chains']['Row'];
 
 /**
  * Fetches all approved stores with chain information
@@ -73,6 +74,26 @@ export async function getStoreWithReviews(storeId: string) {
       profiles: Pick<Profile, 'full_name'>;
     })[];
   };
+}
+
+/**
+ * Fetches a store by ID with chain information
+ * @param storeId - The ID of the store to fetch
+ * @returns Promise<Store & { store_chains?: StoreChain }> The store with chain info
+ * @throws Error if the query fails
+ */
+export async function getStoreByIdWithChain(storeId: string): Promise<Store & { store_chains?: StoreChain }> {
+  const { data, error } = await supabase
+    .from('stores')
+    .select(`
+      *,
+      store_chains (*)
+    `)
+    .eq('id', storeId)
+    .single();
+  
+  if (error) throw new Error(`Failed to fetch store: ${error.message}`);
+  return data;
 }
 
 /**
@@ -516,24 +537,4 @@ export async function hasRole(userId: string, role: Database['public']['Enums'][
   
   if (error) throw new Error(`Failed to check user role: ${error.message}`);
   return data !== null;
-}
-
-/**
- * Fetches a store by ID with chain information
- * @param storeId - The ID of the store to fetch
- * @returns Promise<Store & { store_chains?: StoreChain }> The store with chain info
- * @throws Error if the query fails
- */
-export async function getStoreByIdWithChain(storeId: string): Promise<Store & { store_chains?: StoreChain }> {
-  const { data, error } = await supabase
-    .from('stores')
-    .select(`
-      *,
-      store_chains (*)
-    `)
-    .eq('id', storeId)
-    .single();
-  
-  if (error) throw new Error(`Failed to fetch store: ${error.message}`);
-  return data;
 }
