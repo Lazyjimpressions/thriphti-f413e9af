@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -10,6 +9,7 @@ import AdminStores from "@/components/admin/AdminStores";
 import AdminEvents from "@/components/admin/AdminEvents";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminContentPipeline from "@/components/admin/AdminContentPipeline";
+import AdminSettings from "@/components/admin/AdminSettings";
 import Layout from "@/components/layout/Layout";
 import { Loader2 } from "lucide-react";
 
@@ -168,12 +168,13 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="pipeline" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="pipeline">AI Pipeline</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
             <TabsTrigger value="stores">Stores</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pipeline">
@@ -227,6 +228,17 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <AdminUsers />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AdminSettings />
               </CardContent>
             </Card>
           </TabsContent>
