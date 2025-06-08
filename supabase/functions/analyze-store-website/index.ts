@@ -84,7 +84,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at analyzing thrift store, consignment shop, and vintage store websites. Extract structured information and return valid JSON only.'
+            content: 'You are an expert at analyzing thrift store, consignment shop, and vintage store websites. Extract structured information and return valid JSON only. Do not include any markdown formatting, code blocks, or explanatory text - return only the raw JSON object.'
           },
           {
             role: 'user',
@@ -101,16 +101,38 @@ serve(async (req) => {
     }
 
     const openaiResult = await openaiResponse.json()
-    const content = openaiResult.choices[0]?.message?.content
+    let content = openaiResult.choices[0]?.message?.content
 
     if (!content) {
       throw new Error('No content returned from OpenAI')
     }
 
-    console.log('Content analyzed successfully')
+    console.log('Raw OpenAI response:', content)
+
+    // Clean up the response to extract JSON
+    content = content.trim()
+    
+    // Remove markdown code blocks if present
+    if (content.startsWith('```json')) {
+      content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    } else if (content.startsWith('```')) {
+      content = content.replace(/^```\s*/, '').replace(/\s*```$/, '')
+    }
+    
+    // Remove any leading/trailing whitespace again
+    content = content.trim()
+
+    console.log('Cleaned content for parsing:', content)
 
     // Parse the JSON response
-    const analysisData = JSON.parse(content)
+    let analysisData
+    try {
+      analysisData = JSON.parse(content)
+    } catch (parseError) {
+      console.error('JSON parsing failed. Content:', content)
+      console.error('Parse error:', parseError)
+      throw new Error(`Failed to parse OpenAI response as JSON: ${parseError.message}`)
+    }
     
     // Validate the store is in Dallas-Fort Worth area
     if (!isDallasArea(analysisData.city, analysisData.state)) {
@@ -153,7 +175,7 @@ Website Description: ${scrapedData.metadata?.description || 'None'}
 Content:
 ${scrapedData.markdown}
 
-Extract and return ONLY valid JSON with this exact structure:
+Extract and return ONLY valid JSON with this exact structure (no markdown formatting, no code blocks, no explanatory text):
 {
   "name": "Store name",
   "description": "Compelling 2-3 sentence description highlighting what makes this store unique",
@@ -183,6 +205,7 @@ Rules:
 - Description: focus on unique aspects, specialties, and what shoppers can expect
 - Extract any images from the website content
 - If critical information is missing, use null but maintain JSON structure
+- Return ONLY the JSON object, no other text or formatting
 `
 }
 
